@@ -1,0 +1,11 @@
+# Perfil de apresentacao: OpenAI. A troca de provedor e so de propriedade (secao 8).
+spring:
+  ai:
+    model:
+      chat: openai
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          temperature: 0.2

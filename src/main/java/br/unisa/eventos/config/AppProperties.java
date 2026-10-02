@@ -1,0 +1,32 @@
+package br.unisa.eventos.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * Propriedades da aplicacao sob o prefixo {@code app} (secao 10 da especificacao).
+ */
+@ConfigurationProperties(prefix = "app")
+public record AppProperties(
+        Jwt jwt,
+        String urlBase,
+        Avaliacao avaliacao,
+        Checkin checkin,
+        Ia ia,
+        Storage storage
+) {
+
+    public record Jwt(String segredo, long expiracaoHoras) {
+    }
+
+    public record Avaliacao(int minimoParaResumo) {
+    }
+
+    public record Checkin(long toleranciaHoras) {
+    }
+
+    public record Ia(boolean habilitada, long timeoutSegundos) {
+    }
+
+    public record Storage(String diretorio) {
+    }
+}

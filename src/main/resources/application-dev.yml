@@ -1,0 +1,22 @@
+# Perfil de desenvolvimento: Ollama local, para nao gastar credito de API (secao 8).
+spring:
+  ai:
+    model:
+      chat: ollama
+    ollama:
+      base-url: ${OLLAMA_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_MODEL:llama3.1}
+          temperature: 0.2
+  jpa:
+    show-sql: true
+
+app:
+  jwt:
+    # Segredo fixo para desenvolvimento. Em producao vem de JWT_SECRET.
+    segredo: ${JWT_SECRET:desenvolvimento-local-segredo-hs256-com-no-minimo-32-bytes}
+
+logging:
+  level:
+    br.unisa.eventos: DEBUG

@@ -1,0 +1,26 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IDE ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+### Ambiente ###
+.env
+*.log
+
+### Uploads locais (secao 13.3 da especificacao) ###
+uploads/
+
+### Frontend ###
+node_modules/
+dist/

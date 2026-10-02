@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: gerenciador-de-eventos
+  jackson:
+    time-zone: America/Sao_Paulo
+    default-property-inclusion: non_null
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/eventos}
+    username: ${DB_USER:eventos}
+    password: ${DB_PASSWORD:eventos}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: America/Sao_Paulo
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+  threads:
+    virtual:
+      enabled: true
+  ai:
+    # O perfil dev aponta para Ollama local; o perfil openai e usado na apresentacao.
+    openai:
+      api-key: ${OPENAI_API_KEY:nao-configurada}
+    ollama:
+      init:
+        pull-model-strategy: never
+
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  jwt:
+    segredo: ${JWT_SECRET:}
+    expiracao-horas: 8
+  url-base: ${APP_URL:http://localhost:8080}
+  avaliacao:
+    minimo-para-resumo: 3
+  checkin:
+    tolerancia-horas: 24
+  ia:
+    habilitada: ${IA_HABILITADA:true}
+    timeout-segundos: 20
+  storage:
+    diretorio: ${UPLOAD_DIR:uploads}
+
+logging:
+  level:
+    br.unisa.eventos: INFO

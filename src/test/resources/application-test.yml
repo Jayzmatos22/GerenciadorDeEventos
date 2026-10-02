@@ -1,0 +1,15 @@
+spring:
+  jpa:
+    show-sql: false
+  ai:
+    model:
+      chat: none
+app:
+  jwt:
+    segredo: segredo-de-teste-hs256-com-no-minimo-32-bytes-para-o-hmac
+    expiracao-horas: 8
+  url-base: http://localhost:8080
+logging:
+  level:
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN
