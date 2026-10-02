@@ -20,6 +20,7 @@ Projeto acadêmico — UNISA, Análise e Desenvolvimento de Sistemas.
 | PDF | iText Core 9.8 |
 | Build | Maven (wrapper no repo) |
 | Testes | JUnit 5, Mockito, Testcontainers |
+| Frontend | React 19 + Tailwind 4, build com Vite |
 
 ### Notas de compatibilidade
 
@@ -78,6 +79,31 @@ manual de cadastro continua funcionando — esse é o comportamento esperado (RN
 
 Para a apresentação, troque só o perfil: `-Dspring-boot.run.profiles=openai`.
 
+## Frontend
+
+O frontend fica em [`frontend/`](frontend) e consome a API pelo proxy do Vite, então em
+desenvolvimento não há CORS no caminho.
+
+```bash
+cd frontend
+npm install
+npm run dev     # http://localhost:5173
+```
+
+Ele cobre os dois perfis:
+
+- **Participante** — catálogo com filtros, detalhe do evento, inscrição (com entrada na fila
+  quando lota), cancelamento, download do certificado e avaliação pós-evento.
+- **Organizador** — seus eventos, cadastro assistido por IA, edição, transições de status,
+  fotos, lista de inscritos com fila, registro de presença, avaliações recebidas e resumo
+  por IA.
+- **Público** — validação de certificado pelo código de autenticidade, sem login.
+
+O cadastro assistido mostra a RN-10 funcionando na prática: se `/eventos/interpretar` responde
+`503 IA_INDISPONIVEL`, o painel da IA se recolhe com um aviso e o formulário manual continua
+ali, intacto. Os campos preenchidos pela IA ficam marcados como "confira antes de salvar", e os
+que o texto não trazia aparecem numa lista do que falta preencher.
+
 ## Testes
 
 ```bash
@@ -87,6 +113,19 @@ Para a apresentação, troque só o perfil: `-Dspring-boot.run.profiles=openai`.
 Os testes de integração usam Testcontainers e **precisam de um daemon Docker rodando**. Eles
 levantam um PostgreSQL real e aplicam as migrations, então cobrem schema, segurança e
 persistência de verdade.
+
+Os cinco testes que a especificação exige estão cobertos:
+
+| Cenário | Onde |
+|---|---|
+| Última vaga disputada por duas threads | `InscricaoIntegracaoTest` |
+| Cancelamento de confirmada promove a primeira da fila | `InscricaoIntegracaoTest` e o unitário |
+| Certificado negado sem presença | `CertificadoIntegracaoTest` |
+| Reinscrição após cancelamento não viola o índice único | `InscricaoIntegracaoTest` |
+| `/eventos/interpretar` com o extrator falhando devolve 503 | `InterpretacaoEventoIntegracaoTest` |
+
+O teste de concorrência não passa por acaso: as duas threads calculam `CONFIRMADA`, uma perde a
+disputa pela versão do evento, repete a transação e entra na fila na posição 1.
 
 ## Documentação
 
@@ -104,7 +143,7 @@ teste correspondente.
 - [x] **4** — presença e certificado em PDF com validação pública
 - [x] **5** — extração de evento por IA com fallback
 - [x] **6** — avaliações e resumo por IA
-- [ ] **7** — frontend
+- [x] **7** — frontend
 
 ## Licença
 

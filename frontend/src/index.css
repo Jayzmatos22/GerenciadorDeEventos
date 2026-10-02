@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-marinho-50: #eef3fb;
+  --color-marinho-100: #d7e2f5;
+  --color-marinho-200: #b0c5ea;
+  --color-marinho-500: #2b5aa8;
+  --color-marinho-600: #214a8f;
+  --color-marinho-700: #1a3b73;
+  --color-marinho-900: #14326e;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
