@@ -32,6 +32,11 @@ Três consequências práticas no `pom.xml`:
 - o slice de MockMvc vem em `spring-boot-starter-webmvc-test`, e a anotação mudou de pacote
   para `org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc`.
 
+O serializador padrão também mudou: Boot 4 usa **Jackson 3**, então o bean autoconfigurado é
+`tools.jackson.databind.ObjectMapper`, não o `com.fasterxml.jackson.databind.ObjectMapper`.
+Injetar o pacote antigo compila (o Jackson 2 continua no classpath via springdoc e Spring AI)
+e falha só na subida do contexto.
+
 Spring Boot 4.1.1 e Spring AI 2.0.1 são compatíveis, então **não** foi necessário o fallback
 para Boot 3.5 + Spring AI 1.1 previsto na especificação.
 
@@ -93,7 +98,7 @@ teste correspondente.
 ## Fases de implementação
 
 - [x] **0** — scaffold, `docker-compose`, Flyway `V1__schema.sql`, `/actuator/health`
-- [ ] **1** — usuário, papéis, registro, login, JWT, `SecurityConfig`, tratamento de erro
+- [x] **1** — usuário, papéis, registro, login, JWT, `SecurityConfig`, tratamento de erro
 - [ ] **2** — CRUD de evento, fotos, listagem pública com filtros, transições de status
 - [ ] **3** — inscrição, fila de espera, cancelamento, promoção automática, concorrência
 - [ ] **4** — presença e certificado em PDF com validação pública
