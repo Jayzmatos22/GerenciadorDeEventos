@@ -12,7 +12,8 @@ public record AppProperties(
         Avaliacao avaliacao,
         Checkin checkin,
         Ia ia,
-        Storage storage
+        Storage storage,
+        Cors cors
 ) {
 
     public record Jwt(String segredo, long expiracaoHoras) {
@@ -28,5 +29,8 @@ public record AppProperties(
     }
 
     public record Storage(String diretorio) {
+    }
+
+    public record Cors(java.util.List<String> origens) {
     }
 }

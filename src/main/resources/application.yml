@@ -64,6 +64,10 @@ app:
     timeout-segundos: 20
   storage:
     diretorio: ${UPLOAD_DIR:uploads}
+  cors:
+    # Origens aceitas pelo navegador. No desenvolvimento o proxy do Vite dispensa CORS;
+    # em producao aponte para a origem publica do frontend.
+    origens: ${CORS_ORIGENS:http://localhost:*,http://127.0.0.1:*}
 
 logging:
   level:

@@ -37,6 +37,12 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final AppProperties propriedades;
+
+    public SecurityConfig(AppProperties propriedades) {
+        this.propriedades = propriedades;
+    }
+
     /** RN-11: BCrypt com forca 10. */
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -79,13 +85,14 @@ public class SecurityConfig {
     }
 
     /**
-     * O frontend roda em outra origem no desenvolvimento (Vite em 5173). Em producao o valor
-     * vem de {@code app.cors.origens}.
+     * No desenvolvimento o frontend usa o proxy do Vite e nem chega a disparar CORS. Isto aqui
+     * atende quem sobe o frontend em outra origem, e em producao o valor vem de
+     * {@code app.cors.origens}.
      */
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuracao = new CorsConfiguration();
-        configuracao.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        configuracao.setAllowedOriginPatterns(propriedades.cors().origens());
         configuracao.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuracao.setAllowedHeaders(List.of("*"));
         configuracao.setExposedHeaders(List.of("Content-Disposition"));

@@ -29,8 +29,10 @@ public interface EventoRepository
     Optional<Evento> buscarParaConcorrenciaDeVagas(@Param("id") Long id);
 
     /**
-     * Vagas ocupadas para a leitura do evento. Consulta nativa porque o modulo de inscricao
-     * nasce na fase 3; a contagem transacional da RN-01 vive no InscricaoService.
+     * Vagas ocupadas, para o lado de leitura do evento. E uma consulta nativa de proposito:
+     * assim o modulo de evento nao depende do mapeamento de inscricao so para montar a
+     * resposta. A contagem que decide confirmacao ou fila (RN-01) e outra, transacional e
+     * sob lock, e vive no modulo de inscricao.
      */
     @Query(value = """
             select count(*) from inscricao
