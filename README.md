@@ -101,7 +101,7 @@ teste correspondente.
 - [x] **1** — usuário, papéis, registro, login, JWT, `SecurityConfig`, tratamento de erro
 - [x] **2** — CRUD de evento, fotos, listagem pública com filtros, transições de status
 - [x] **3** — inscrição, fila de espera, cancelamento, promoção automática, concorrência
-- [ ] **4** — presença e certificado em PDF com validação pública
+- [x] **4** — presença e certificado em PDF com validação pública
 - [ ] **5** — extração de evento por IA com fallback
 - [ ] **6** — avaliações e resumo por IA
 - [ ] **7** — frontend

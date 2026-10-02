@@ -157,6 +157,66 @@ public abstract class AbstractIntegracaoTest {
         }
     }
 
+    /**
+     * Inscreve o participante e devolve o id da inscricao. Falha o teste se o status
+     * resultante nao for CONFIRMADA.
+     */
+    protected long inscreverConfirmado(Autenticado participante, long eventoId) {
+        try {
+            String resposta = mockMvc.perform(post("/api/eventos/{id}/inscricoes", eventoId)
+                            .header(org.springframework.http.HttpHeaders.AUTHORIZATION,
+                                    participante.header()))
+                    .andExpect(status().isCreated())
+                    .andReturn().getResponse().getContentAsString();
+            JsonNode corpo = objectMapper.readTree(resposta);
+
+            if (!"CONFIRMADA".equals(corpo.get("status").asText())) {
+                throw new IllegalStateException("Esperava CONFIRMADA e vi "
+                        + corpo.get("status").asText());
+            }
+            return corpo.get("id").asLong();
+        } catch (Exception e) {
+            throw new IllegalStateException("Falha ao inscrever " + participante.email(), e);
+        }
+    }
+
+    /** Registra presenca pelo organizador dono do evento. */
+    protected void registrarPresenca(Autenticado organizador, long eventoId, long inscricaoId) {
+        try {
+            mockMvc.perform(post("/api/eventos/{id}/presencas", eventoId)
+                            .header(org.springframework.http.HttpHeaders.AUTHORIZATION,
+                                    organizador.header())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"inscricaoId":%d}""".formatted(inscricaoId)))
+                    .andExpect(status().isCreated());
+        } catch (Exception e) {
+            throw new IllegalStateException("Falha ao registrar presenca da inscricao "
+                    + inscricaoId, e);
+        }
+    }
+
+    /**
+     * Cria um evento que esta acontecendo agora e ja publicado, de modo que a janela de
+     * check-in da RN-04 esteja aberta.
+     */
+    protected long criarEventoEmAndamento(Autenticado organizador, String titulo,
+                                          int limiteVagas) {
+        long eventoId = criarEvento(organizador, titulo, limiteVagas,
+                java.time.LocalDateTime.now().minusHours(1),
+                java.time.LocalDateTime.now().plusHours(3));
+        return publicar(organizador, eventoId);
+    }
+
+    /** Cria um evento que ja terminou, com a janela de check-in ainda aberta pela tolerancia. */
+    protected long criarEventoEncerradoRecentemente(Autenticado organizador, String titulo,
+                                                    int limiteVagas) {
+        long eventoId = criarEvento(organizador, titulo, limiteVagas,
+                java.time.LocalDateTime.now().minusHours(6),
+                java.time.LocalDateTime.now().minusHours(2));
+        return publicar(organizador, eventoId);
+    }
+
     protected record Autenticado(long id, String email, String token) {
 
         public String header() {
