@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Botao } from './ui'
 
-function ItemMenu({ to, children }) {
+function ItemMenu({ to, children }: { to: string; children: ReactNode }) {
   return (
     <NavLink
       to={to}
@@ -18,7 +19,7 @@ function ItemMenu({ to, children }) {
 }
 
 export default function Layout() {
-  const { usuario, autenticado, ehOrganizador, ehParticipante, sair } = useAuth()
+  const { usuario, ehOrganizador, ehParticipante, sair } = useAuth()
   const navegar = useNavigate()
 
   function encerrarSessao() {
@@ -42,7 +43,7 @@ export default function Layout() {
             {ehOrganizador && <ItemMenu to="/organizador">Meus eventos</ItemMenu>}
           </nav>
 
-          {autenticado ? (
+          {usuario ? (
             <div className="flex items-center gap-3">
               <span className="hidden text-sm text-slate-600 sm:inline">{usuario.nome}</span>
               <Botao variante="discreto" onClick={encerrarSessao}>

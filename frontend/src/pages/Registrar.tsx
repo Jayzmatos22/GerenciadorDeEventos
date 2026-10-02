@@ -1,28 +1,30 @@
-import { useState } from 'react'
+import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { Alerta, Botao, Campo, Cartao, Entrada, Selecao } from '../components/ui'
+import type { RegistrarRequest } from '../types/api'
 
 export default function Registrar() {
   const { registrar } = useAuth()
   const navegar = useNavigate()
 
-  const [dados, setDados] = useState({
+  const [dados, setDados] = useState<Required<RegistrarRequest>>({
     nome: '',
     email: '',
     senha: '',
     papel: 'PARTICIPANTE',
   })
-  const [erro, setErro] = useState(null)
-  const [errosPorCampo, setErrosPorCampo] = useState({})
+  const [erro, setErro] = useState<string | null>(null)
+  const [errosPorCampo, setErrosPorCampo] = useState<Record<string, string>>({})
   const [enviando, setEnviando] = useState(false)
 
-  function alterar(campo) {
-    return (evento) => setDados((anterior) => ({ ...anterior, [campo]: evento.target.value }))
+  function alterar(campo: keyof RegistrarRequest) {
+    return (evento: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setDados((anterior) => ({ ...anterior, [campo]: evento.target.value }))
   }
 
-  async function enviar(evento) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     setErro(null)
     setErrosPorCampo({})

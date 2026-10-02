@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ApiError, api } from '../api/client'
+import type { EventoResponse, InscricaoResponse } from '../types/api'
 import { useAuth } from '../context/AuthContext'
 import { Alerta, Botao, Cartao, Carregando, Etiqueta } from '../components/ui'
 import { periodoDoEvento } from '../utils/formato'
@@ -10,16 +11,16 @@ export default function DetalheEvento() {
   const navegar = useNavigate()
   const { autenticado, ehParticipante } = useAuth()
 
-  const [evento, setEvento] = useState(null)
-  const [erro, setErro] = useState(null)
-  const [aviso, setAviso] = useState(null)
-  const [sucesso, setSucesso] = useState(null)
+  const [evento, setEvento] = useState<EventoResponse | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
+  const [aviso, setAviso] = useState<string | null>(null)
+  const [sucesso, setSucesso] = useState<string | null>(null)
   const [inscrevendo, setInscrevendo] = useState(false)
 
   const carregar = useCallback(async () => {
     setErro(null)
     try {
-      setEvento(await api.get(`/api/eventos/${id}`))
+      setEvento(await api.get<EventoResponse>(`/api/eventos/${id}`))
     } catch (falha) {
       setErro(
         falha instanceof ApiError && falha.status === 404
@@ -43,7 +44,7 @@ export default function DetalheEvento() {
     setSucesso(null)
     setInscrevendo(true)
     try {
-      const inscricao = await api.post(`/api/eventos/${id}/inscricoes`)
+      const inscricao = await api.post<InscricaoResponse>(`/api/eventos/${id}/inscricoes`)
       setSucesso(
         inscricao.status === 'CONFIRMADA'
           ? 'Inscrição confirmada. Você já está na lista de participantes.'

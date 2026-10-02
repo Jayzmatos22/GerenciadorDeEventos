@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ApiError, api } from '../api/client'
+import type { ValidacaoCertificadoResponse } from '../types/api'
 import { Alerta, Botao, Campo, Cartao, Entrada } from '../components/ui'
 import { formatarData, periodoDoEvento } from '../utils/formato'
 
@@ -9,8 +10,8 @@ export default function ValidarCertificado() {
   const navegar = useNavigate()
 
   const [codigo, setCodigo] = useState(codigoDaUrl ?? '')
-  const [certificado, setCertificado] = useState(null)
-  const [erro, setErro] = useState(null)
+  const [certificado, setCertificado] = useState<ValidacaoCertificadoResponse | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
   const [consultando, setConsultando] = useState(false)
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function ValidarCertificado() {
     let cancelado = false
     setConsultando(true)
     api
-      .get(`/api/certificados/validar/${codigoDaUrl}`)
+      .get<ValidacaoCertificadoResponse>(`/api/certificados/validar/${codigoDaUrl}`)
       .then((dados) => {
         if (!cancelado) {
           setCertificado(dados)
@@ -45,7 +46,7 @@ export default function ValidarCertificado() {
     }
   }, [codigoDaUrl])
 
-  function consultar(evento) {
+  function consultar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const limpo = codigo.trim().toUpperCase()
     if (limpo) navegar(`/certificados/validar/${limpo}`)

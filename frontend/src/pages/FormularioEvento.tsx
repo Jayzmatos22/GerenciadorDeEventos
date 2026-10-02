@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ApiError, api } from '../api/client'
 import {
@@ -11,8 +11,17 @@ import {
   Entrada,
 } from '../components/ui'
 import { paraCampoDataHora, paraIsoLocal } from '../utils/formato'
+import type {
+  CampoExtraido,
+  EventoExtraidoDTO,
+  EventoRequest,
+  EventoResponse,
+} from '../types/api'
 
-const FORMULARIO_VAZIO = {
+/** Espelha o EventoRequest, mas tudo como texto: é o que os `<input>` carregam. */
+type FormularioEventoDados = Record<CampoExtraido, string>
+
+const FORMULARIO_VAZIO: FormularioEventoDados = {
   titulo: '',
   descricao: '',
   local: '',
@@ -22,7 +31,7 @@ const FORMULARIO_VAZIO = {
   limiteVagas: '',
 }
 
-const ROTULOS = {
+const ROTULOS: Record<CampoExtraido, string> = {
   titulo: 'título',
   descricao: 'descrição',
   local: 'local',
@@ -37,17 +46,17 @@ const ROTULOS = {
  * preenche o formulário, e o organizador confirma. Quando a IA está fora do ar o painel
  * se recolhe e o formulário manual continua ali, intocado (RN-10).
  */
-function AssistenteIA({ onExtraido }) {
+function AssistenteIA({ onExtraido }: { onExtraido: (extraido: EventoExtraidoDTO) => void }) {
   const [texto, setTexto] = useState('')
   const [interpretando, setInterpretando] = useState(false)
   const [indisponivel, setIndisponivel] = useState(false)
-  const [erro, setErro] = useState(null)
+  const [erro, setErro] = useState<string | null>(null)
 
   async function interpretar() {
     setErro(null)
     setInterpretando(true)
     try {
-      const extraido = await api.post('/api/eventos/interpretar', { texto })
+      const extraido = await api.post<EventoExtraidoDTO>('/api/eventos/interpretar', { texto })
       onExtraido(extraido)
     } catch (falha) {
       if (falha instanceof ApiError && falha.codigo === 'IA_INDISPONIVEL') {
@@ -110,11 +119,11 @@ export default function FormularioEvento() {
   const navegar = useNavigate()
   const editando = Boolean(id)
 
-  const [formulario, setFormulario] = useState(FORMULARIO_VAZIO)
-  const [camposSugeridos, setCamposSugeridos] = useState([])
-  const [camposNaoIdentificados, setCamposNaoIdentificados] = useState([])
-  const [errosPorCampo, setErrosPorCampo] = useState({})
-  const [erro, setErro] = useState(null)
+  const [formulario, setFormulario] = useState<FormularioEventoDados>(FORMULARIO_VAZIO)
+  const [camposSugeridos, setCamposSugeridos] = useState<CampoExtraido[]>([])
+  const [camposNaoIdentificados, setCamposNaoIdentificados] = useState<CampoExtraido[]>([])
+  const [errosPorCampo, setErrosPorCampo] = useState<Record<string, string>>({})
+  const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(editando)
   const [salvando, setSalvando] = useState(false)
 
@@ -123,7 +132,7 @@ export default function FormularioEvento() {
 
     let cancelado = false
     api
-      .get(`/api/eventos/${id}`)
+      .get<EventoResponse>(`/api/eventos/${id}`)
       .then((evento) => {
         if (cancelado) return
         setFormulario({
@@ -148,20 +157,20 @@ export default function FormularioEvento() {
     }
   }, [editando, id])
 
-  function alterar(campo) {
-    return (evento) => {
+  function alterar(campo: CampoExtraido) {
+    return (evento: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormulario((anterior) => ({ ...anterior, [campo]: evento.target.value }))
       setCamposSugeridos((sugeridos) => sugeridos.filter((nome) => nome !== campo))
     }
   }
 
-  function aplicarExtracao(extraido) {
-    const preenchidos = []
+  function aplicarExtracao(extraido: EventoExtraidoDTO) {
+    const preenchidos: CampoExtraido[] = []
 
     setFormulario((anterior) => {
       const novo = { ...anterior }
-      const atribuir = (campo, valor) => {
-        if (valor === null || valor === undefined || valor === '') return
+      const atribuir = (campo: CampoExtraido, valor: string | number | undefined) => {
+        if (valor === undefined || valor === '') return
         novo[campo] = String(valor)
         preenchidos.push(campo)
       }
@@ -177,16 +186,16 @@ export default function FormularioEvento() {
     })
 
     setCamposSugeridos(preenchidos)
-    setCamposNaoIdentificados(extraido.camposNaoIdentificados ?? [])
+    setCamposNaoIdentificados(extraido.camposNaoIdentificados)
   }
 
-  async function salvar(evento) {
+  async function salvar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     setErro(null)
     setErrosPorCampo({})
     setSalvando(true)
 
-    const corpo = {
+    const corpo: EventoRequest = {
       titulo: formulario.titulo,
       descricao: formulario.descricao,
       local: formulario.local,
@@ -198,8 +207,8 @@ export default function FormularioEvento() {
 
     try {
       const salvo = editando
-        ? await api.put(`/api/eventos/${id}`, corpo)
-        : await api.post('/api/eventos', corpo)
+        ? await api.put<EventoResponse>(`/api/eventos/${id}`, corpo)
+        : await api.post<EventoResponse>('/api/eventos', corpo)
       navegar(`/organizador/eventos/${salvo.id}`, { replace: true })
     } catch (falha) {
       if (falha instanceof ApiError) {
@@ -215,7 +224,7 @@ export default function FormularioEvento() {
 
   if (carregando) return <Carregando texto="Carregando evento…" />
 
-  const dicaSugerida = (campo) =>
+  const dicaSugerida = (campo: CampoExtraido): string | undefined =>
     camposSugeridos.includes(campo) ? 'Preenchido pela IA — confira antes de salvar.' : undefined
 
   return (

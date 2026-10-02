@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import type { ChangeEvent, FormEvent } from 'react'
 import { api, query } from '../api/client'
+import type { EventoResumoResponse, Pagina } from '../types/api'
 import {
   Alerta,
   Botao,
@@ -14,7 +16,7 @@ import {
 } from '../components/ui'
 import { periodoDoEvento } from '../utils/formato'
 
-function CartaoEvento({ evento }) {
+function CartaoEvento({ evento }: { evento: EventoResumoResponse }) {
   const lotado = evento.vagasRestantes === 0
 
   return (
@@ -50,12 +52,20 @@ function CartaoEvento({ evento }) {
   )
 }
 
+interface Filtros {
+  q: string
+  dataInicio: string
+  dataFim: string
+}
+
+const FILTROS_VAZIOS: Filtros = { q: '', dataInicio: '', dataFim: '' }
+
 export default function Catalogo() {
-  const [filtros, setFiltros] = useState({ q: '', dataInicio: '', dataFim: '' })
-  const [aplicados, setAplicados] = useState({ q: '', dataInicio: '', dataFim: '' })
+  const [filtros, setFiltros] = useState<Filtros>(FILTROS_VAZIOS)
+  const [aplicados, setAplicados] = useState<Filtros>(FILTROS_VAZIOS)
   const [pagina, setPagina] = useState(0)
-  const [resultado, setResultado] = useState(null)
-  const [erro, setErro] = useState(null)
+  const [resultado, setResultado] = useState<Pagina<EventoResumoResponse> | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
 
   const buscar = useCallback(async () => {
@@ -69,7 +79,7 @@ export default function Catalogo() {
         page: pagina,
         size: 9,
       })
-      setResultado(await api.get(`/api/eventos${parametros}`))
+      setResultado(await api.get<Pagina<EventoResumoResponse>>(`/api/eventos${parametros}`))
     } catch {
       setErro('Não foi possível carregar os eventos agora.')
     } finally {
@@ -81,21 +91,21 @@ export default function Catalogo() {
     buscar()
   }, [buscar])
 
-  function aplicarFiltros(evento) {
+  function aplicarFiltros(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     setPagina(0)
     setAplicados(filtros)
   }
 
   function limparFiltros() {
-    const vazios = { q: '', dataInicio: '', dataFim: '' }
-    setFiltros(vazios)
-    setAplicados(vazios)
+    setFiltros(FILTROS_VAZIOS)
+    setAplicados(FILTROS_VAZIOS)
     setPagina(0)
   }
 
-  function alterar(campo) {
-    return (evento) => setFiltros((anterior) => ({ ...anterior, [campo]: evento.target.value }))
+  function alterar(campo: keyof Filtros) {
+    return (evento: ChangeEvent<HTMLInputElement>) =>
+      setFiltros((anterior) => ({ ...anterior, [campo]: evento.target.value }))
   }
 
   return (
@@ -138,14 +148,14 @@ export default function Catalogo() {
 
       {carregando && <Carregando texto="Buscando eventos…" />}
 
-      {!carregando && resultado?.content?.length === 0 && (
+      {!carregando && resultado?.content.length === 0 && (
         <Vazio titulo="Nenhum evento encontrado">
           Ajuste os filtros ou volte mais tarde — novos eventos aparecem aqui assim que são
           publicados.
         </Vazio>
       )}
 
-      {!carregando && resultado?.content?.length > 0 && (
+      {!carregando && resultado && resultado.content.length > 0 && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {resultado.content.map((evento) => (

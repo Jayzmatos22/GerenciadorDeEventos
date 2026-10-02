@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { ApiError, api, query } from '../api/client'
 import {
   Alerta,
@@ -13,19 +13,27 @@ import {
   Vazio,
 } from '../components/ui'
 import { periodoDoEvento } from '../utils/formato'
+import type { AvaliacaoResponse, CertificadoResponse, InscricaoResponse, Pagina } from '../types/api'
 
-function FormularioAvaliacao({ inscricaoId, onAvaliada }) {
+interface FormularioAvaliacaoProps {
+  inscricaoId: number
+  onAvaliada: (mensagem: string) => void
+}
+
+const ROTULOS_DE_NOTA = ['Ruim', 'Regular', 'Bom', 'Muito bom', 'Excelente'] as const
+
+function FormularioAvaliacao({ inscricaoId, onAvaliada }: FormularioAvaliacaoProps) {
   const [nota, setNota] = useState('5')
   const [comentario, setComentario] = useState('')
-  const [erro, setErro] = useState(null)
+  const [erro, setErro] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
 
-  async function enviar(evento) {
+  async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     setErro(null)
     setEnviando(true)
     try {
-      await api.post(`/api/inscricoes/${inscricaoId}/avaliacao`, {
+      await api.post<AvaliacaoResponse>(`/api/inscricoes/${inscricaoId}/avaliacao`, {
         nota: Number(nota),
         comentario: comentario.trim() || null,
       })
@@ -43,7 +51,7 @@ function FormularioAvaliacao({ inscricaoId, onAvaliada }) {
         <Selecao value={nota} onChange={(e) => setNota(e.target.value)}>
           {[5, 4, 3, 2, 1].map((valor) => (
             <option key={valor} value={valor}>
-              {valor} — {['Ruim', 'Regular', 'Bom', 'Muito bom', 'Excelente'][valor - 1]}
+              {valor} — {ROTULOS_DE_NOTA[valor - 1]}
             </option>
           ))}
         </Selecao>
@@ -67,11 +75,17 @@ function FormularioAvaliacao({ inscricaoId, onAvaliada }) {
   )
 }
 
-function CartaoInscricao({ inscricao, onMudou, onMensagem }) {
+interface CartaoInscricaoProps {
+  inscricao: InscricaoResponse
+  onMudou: () => Promise<void>
+  onMensagem: (mensagem: string) => void
+}
+
+function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProps) {
   const { evento } = inscricao
   const [avaliando, setAvaliando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
-  const [erro, setErro] = useState(null)
+  const [erro, setErro] = useState<string | null>(null)
 
   const ativa = inscricao.status === 'CONFIRMADA' || inscricao.status === 'EM_ESPERA'
   const eventoTerminou = new Date(evento.dataFim) < new Date()
@@ -95,8 +109,8 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }) {
     setOcupado(true)
     try {
       // A emissão é idempotente: chamar de novo devolve o mesmo certificado (RN-05).
-      await api.post(`/api/inscricoes/${inscricao.id}/certificado`)
-      const pdf = await api.get(`/api/inscricoes/${inscricao.id}/certificado`)
+      await api.post<CertificadoResponse>(`/api/inscricoes/${inscricao.id}/certificado`)
+      const pdf = await api.getPdf(`/api/inscricoes/${inscricao.id}/certificado`)
 
       const url = URL.createObjectURL(pdf)
       const link = document.createElement('a')
@@ -126,7 +140,7 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }) {
         </div>
         <div className="flex items-center gap-2">
           <Etiqueta status={inscricao.status} />
-          {inscricao.posicaoFila != null && (
+          {inscricao.posicaoFila !== undefined && (
             <span className="text-xs font-medium text-amber-700">
               {inscricao.posicaoFila}º da fila
             </span>
@@ -170,17 +184,21 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }) {
 }
 
 export default function MinhasInscricoes() {
-  const [resultado, setResultado] = useState(null)
+  const [resultado, setResultado] = useState<Pagina<InscricaoResponse> | null>(null)
   const [pagina, setPagina] = useState(0)
   const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState(null)
-  const [mensagem, setMensagem] = useState(null)
+  const [erro, setErro] = useState<string | null>(null)
+  const [mensagem, setMensagem] = useState<string | null>(null)
 
   const carregar = useCallback(async () => {
     setCarregando(true)
     setErro(null)
     try {
-      setResultado(await api.get(`/api/inscricoes/minhas${query({ page: pagina, size: 10 })}`))
+      setResultado(
+        await api.get<Pagina<InscricaoResponse>>(
+          `/api/inscricoes/minhas${query({ page: pagina, size: 10 })}`,
+        ),
+      )
     } catch {
       setErro('Não foi possível carregar suas inscrições agora.')
     } finally {
@@ -207,13 +225,13 @@ export default function MinhasInscricoes() {
 
       {carregando && <Carregando />}
 
-      {!carregando && resultado?.content?.length === 0 && (
+      {!carregando && resultado?.content.length === 0 && (
         <Vazio titulo="Você ainda não se inscreveu em nenhum evento">
           Dê uma olhada nos eventos abertos e garanta sua vaga.
         </Vazio>
       )}
 
-      {!carregando && resultado?.content?.length > 0 && (
+      {!carregando && resultado && resultado.content.length > 0 && (
         <>
           <div className="space-y-4">
             {resultado.content.map((inscricao) => (

@@ -11,8 +11,26 @@ import {
   Vazio,
 } from '../components/ui'
 import { formatarDataHora, periodoDoEvento } from '../utils/formato'
+import type {
+  AvaliacaoResponse,
+  EventoFotoResponse,
+  EventoResponse,
+  InscritoResponse,
+  Pagina,
+  PresencaResponse,
+  ResumoAvaliacaoResponse,
+  StatusEvento,
+} from '../types/api'
+import type { ChangeEvent } from 'react'
+import type { Variante } from '../components/ui'
 
-const PROXIMOS_STATUS = {
+interface Transicao {
+  destino: StatusEvento
+  rotulo: string
+  variante?: Variante
+}
+
+const PROXIMOS_STATUS: Record<StatusEvento, Transicao[]> = {
   RASCUNHO: [
     { destino: 'PUBLICADO', rotulo: 'Publicar' },
     { destino: 'CANCELADO', rotulo: 'Cancelar evento', variante: 'perigo' },
@@ -30,20 +48,25 @@ const PROXIMOS_STATUS = {
   CANCELADO: [],
 }
 
-function PainelInscritos({ eventoId, onMensagem }) {
-  const [inscritos, setInscritos] = useState([])
-  const [presentes, setPresentes] = useState([])
+interface PainelInscritosProps {
+  eventoId: string
+  onMensagem: (mensagem: string) => void
+}
+
+function PainelInscritos({ eventoId, onMensagem }: PainelInscritosProps) {
+  const [inscritos, setInscritos] = useState<InscritoResponse[]>([])
+  const [presentes, setPresentes] = useState<PresencaResponse[]>([])
   const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState(null)
-  const [ocupado, setOcupado] = useState(null)
+  const [erro, setErro] = useState<string | null>(null)
+  const [ocupado, setOcupado] = useState<number | null>(null)
 
   const carregar = useCallback(async () => {
     setCarregando(true)
     setErro(null)
     try {
       const [pagina, listaDePresentes] = await Promise.all([
-        api.get(`/api/eventos/${eventoId}/inscricoes?page=0&size=100`),
-        api.get(`/api/eventos/${eventoId}/presencas`),
+        api.get<Pagina<InscritoResponse>>(`/api/eventos/${eventoId}/inscricoes?page=0&size=100`),
+        api.get<PresencaResponse[]>(`/api/eventos/${eventoId}/presencas`),
       ])
       setInscritos(pagina.content)
       setPresentes(listaDePresentes)
@@ -60,11 +83,11 @@ function PainelInscritos({ eventoId, onMensagem }) {
 
   const idsComPresenca = new Set(presentes.map((presenca) => presenca.inscricaoId))
 
-  async function registrarPresenca(inscricaoId) {
+  async function registrarPresenca(inscricaoId: number) {
     setErro(null)
     setOcupado(inscricaoId)
     try {
-      await api.post(`/api/eventos/${eventoId}/presencas`, { inscricaoId })
+      await api.post<PresencaResponse>(`/api/eventos/${eventoId}/presencas`, { inscricaoId })
       onMensagem('Presença registrada.')
       await carregar()
     } catch (falha) {
@@ -160,25 +183,27 @@ function PainelInscritos({ eventoId, onMensagem }) {
   )
 }
 
-function PainelAvaliacoes({ eventoId }) {
-  const [avaliacoes, setAvaliacoes] = useState([])
-  const [resumo, setResumo] = useState(null)
+function PainelAvaliacoes({ eventoId }: { eventoId: string }) {
+  const [avaliacoes, setAvaliacoes] = useState<AvaliacaoResponse[]>([])
+  const [resumo, setResumo] = useState<ResumoAvaliacaoResponse | null>(null)
   const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState(null)
-  const [avisoIa, setAvisoIa] = useState(null)
+  const [erro, setErro] = useState<string | null>(null)
+  const [avisoIa, setAvisoIa] = useState<string | null>(null)
   const [gerando, setGerando] = useState(false)
 
   const carregar = useCallback(async () => {
     setCarregando(true)
     setErro(null)
     try {
-      setAvaliacoes(await api.get(`/api/eventos/${eventoId}/avaliacoes`))
+      setAvaliacoes(await api.get<AvaliacaoResponse[]>(`/api/eventos/${eventoId}/avaliacoes`))
     } catch {
       setErro('Não foi possível carregar as avaliações.')
     }
 
     try {
-      setResumo(await api.get(`/api/eventos/${eventoId}/avaliacoes/resumo`))
+      setResumo(
+        await api.get<ResumoAvaliacaoResponse>(`/api/eventos/${eventoId}/avaliacoes/resumo`),
+      )
     } catch {
       // 404 é o caso normal de quem ainda não gerou resumo.
       setResumo(null)
@@ -195,7 +220,9 @@ function PainelAvaliacoes({ eventoId }) {
     setAvisoIa(null)
     setGerando(true)
     try {
-      setResumo(await api.post(`/api/eventos/${eventoId}/avaliacoes/resumo`))
+      setResumo(
+        await api.post<ResumoAvaliacaoResponse>(`/api/eventos/${eventoId}/avaliacoes/resumo`),
+      )
     } catch (falha) {
       setAvisoIa(
         falha instanceof ApiError
@@ -279,11 +306,18 @@ function PainelAvaliacoes({ eventoId }) {
   )
 }
 
-function PainelFotos({ eventoId, fotos, onMudou, onMensagem }) {
-  const [erro, setErro] = useState(null)
+interface PainelFotosProps {
+  eventoId: string
+  fotos: EventoFotoResponse[]
+  onMudou: () => Promise<void>
+  onMensagem: (mensagem: string) => void
+}
+
+function PainelFotos({ eventoId, fotos, onMudou, onMensagem }: PainelFotosProps) {
+  const [erro, setErro] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
 
-  async function enviar(evento) {
+  async function enviar(evento: ChangeEvent<HTMLInputElement>) {
     const arquivo = evento.target.files?.[0]
     if (!arquivo) return
 
@@ -292,7 +326,7 @@ function PainelFotos({ eventoId, fotos, onMudou, onMensagem }) {
     try {
       const formData = new FormData()
       formData.append('arquivo', arquivo)
-      await api.upload(`/api/eventos/${eventoId}/fotos`, formData)
+      await api.upload<EventoFotoResponse>(`/api/eventos/${eventoId}/fotos`, formData)
       onMensagem('Foto adicionada.')
       await onMudou()
     } catch (falha) {
@@ -303,7 +337,7 @@ function PainelFotos({ eventoId, fotos, onMudou, onMensagem }) {
     }
   }
 
-  async function remover(fotoId) {
+  async function remover(fotoId: number) {
     setErro(null)
     setOcupado(true)
     try {
@@ -362,25 +396,27 @@ function PainelFotos({ eventoId, fotos, onMudou, onMensagem }) {
   )
 }
 
-const ABAS = [
+type Aba = 'inscritos' | 'avaliacoes' | 'fotos'
+
+const ABAS: { chave: Aba; rotulo: string }[] = [
   { chave: 'inscritos', rotulo: 'Inscritos e presença' },
   { chave: 'avaliacoes', rotulo: 'Avaliações' },
   { chave: 'fotos', rotulo: 'Fotos' },
 ]
 
 export default function GerenciarEvento() {
-  const { id } = useParams()
+  const { id = '' } = useParams()
 
-  const [evento, setEvento] = useState(null)
-  const [aba, setAba] = useState('inscritos')
-  const [erro, setErro] = useState(null)
-  const [mensagem, setMensagem] = useState(null)
+  const [evento, setEvento] = useState<EventoResponse | null>(null)
+  const [aba, setAba] = useState<Aba>('inscritos')
+  const [erro, setErro] = useState<string | null>(null)
+  const [mensagem, setMensagem] = useState<string | null>(null)
   const [mudandoStatus, setMudandoStatus] = useState(false)
 
   const carregar = useCallback(async () => {
     setErro(null)
     try {
-      setEvento(await api.get(`/api/eventos/${id}`))
+      setEvento(await api.get<EventoResponse>(`/api/eventos/${id}`))
     } catch {
       setErro('Não foi possível carregar o evento.')
     }
@@ -390,11 +426,11 @@ export default function GerenciarEvento() {
     carregar()
   }, [carregar])
 
-  async function mudarStatus(destino) {
+  async function mudarStatus(destino: StatusEvento) {
     setErro(null)
     setMudandoStatus(true)
     try {
-      setEvento(await api.patch(`/api/eventos/${id}/status`, { status: destino }))
+      setEvento(await api.patch<EventoResponse>(`/api/eventos/${id}/status`, { status: destino }))
       setMensagem(`Evento agora está ${destino.replace('_', ' ').toLowerCase()}.`)
     } catch (falha) {
       setErro(falha instanceof ApiError ? falha.message : 'Não foi possível mudar o status.')
@@ -406,7 +442,7 @@ export default function GerenciarEvento() {
   if (erro && !evento) return <Alerta titulo="Evento indisponível">{erro}</Alerta>
   if (!evento) return <Carregando texto="Carregando evento…" />
 
-  const transicoes = PROXIMOS_STATUS[evento.status] ?? []
+  const transicoes = PROXIMOS_STATUS[evento.status]
   const editavel = evento.status !== 'ENCERRADO' && evento.status !== 'CANCELADO'
 
   return (

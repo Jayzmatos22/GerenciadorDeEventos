@@ -501,9 +501,10 @@ Fases 1 a 4 são o núcleo: se o prazo apertar, o projeto é defensável sem as 
 Nenhuma destas bloqueia o início do desenvolvimento. Todas foram isoladas no desenho para que
 a mudança seja local.
 
-1. **Frontend.** Não definido na documentação original. Recomendação: React + Tailwind,
-   consumindo a API já especificada. Como o backend é stateless e só fala JSON, a escolha não
-   afeta nada das fases 0 a 6.
+1. **Frontend.** ~~Não definido na documentação original. Recomendação: React + Tailwind,
+   consumindo a API já especificada.~~ **Decidido:** React + TypeScript + Tailwind, consumindo a
+   API já especificada. Como o backend é stateless e só fala JSON, a escolha não afeta nada das
+   fases 0 a 6.
 2. **Provedor de LLM.** Ollama local no desenvolvimento, OpenAI na apresentação. Troca por
    propriedade.
 3. **Upload de imagens.** v1: salvar em disco local e servir por `/uploads/**`. Se precisar de

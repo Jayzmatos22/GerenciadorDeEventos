@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, query } from '../api/client'
+import type { EventoResumoResponse, Pagina } from '../types/api'
 import {
   Alerta,
   BotaoLink,
@@ -13,16 +14,20 @@ import {
 import { periodoDoEvento } from '../utils/formato'
 
 export default function MeusEventos() {
-  const [resultado, setResultado] = useState(null)
+  const [resultado, setResultado] = useState<Pagina<EventoResumoResponse> | null>(null)
   const [pagina, setPagina] = useState(0)
   const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState(null)
+  const [erro, setErro] = useState<string | null>(null)
 
   const carregar = useCallback(async () => {
     setCarregando(true)
     setErro(null)
     try {
-      setResultado(await api.get(`/api/eventos/meus${query({ page: pagina, size: 10 })}`))
+      setResultado(
+        await api.get<Pagina<EventoResumoResponse>>(
+          `/api/eventos/meus${query({ page: pagina, size: 10 })}`,
+        ),
+      )
     } catch {
       setErro('Não foi possível carregar seus eventos agora.')
     } finally {
@@ -50,13 +55,13 @@ export default function MeusEventos() {
 
       {carregando && <Carregando />}
 
-      {!carregando && resultado?.content?.length === 0 && (
+      {!carregando && resultado?.content.length === 0 && (
         <Vazio titulo="Você ainda não criou nenhum evento">
           Comece colando o texto do convite e deixe a IA preencher o rascunho para você revisar.
         </Vazio>
       )}
 
-      {!carregando && resultado?.content?.length > 0 && (
+      {!carregando && resultado && resultado.content.length > 0 && (
         <>
           <div className="space-y-4">
             {resultado.content.map((evento) => (

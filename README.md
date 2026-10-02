@@ -20,7 +20,7 @@ Projeto acadêmico — UNISA, Análise e Desenvolvimento de Sistemas.
 | PDF | iText Core 9.8 |
 | Build | Maven (wrapper no repo) |
 | Testes | JUnit 5, Mockito, Testcontainers |
-| Frontend | React 19 + Tailwind 4, build com Vite |
+| Frontend | React 19 + TypeScript 7, Tailwind 4, build com Vite |
 
 ### Notas de compatibilidade
 
@@ -81,14 +81,30 @@ Para a apresentação, troque só o perfil: `-Dspring-boot.run.profiles=openai`.
 
 ## Frontend
 
-O frontend fica em [`frontend/`](frontend) e consome a API pelo proxy do Vite, então em
-desenvolvimento não há CORS no caminho.
+O frontend fica em [`frontend/`](frontend), é **React + TypeScript** e consome a API pelo proxy
+do Vite, então em desenvolvimento não há CORS no caminho.
 
 ```bash
 cd frontend
 npm install
-npm run dev     # http://localhost:5173
+npm run dev        # http://localhost:5173
+npm run typecheck  # tsc --noEmit
+npm run build      # typecheck + build de produção
 ```
+
+O `build` roda `tsc --noEmit` antes do Vite, de propósito: o Vite transpila TypeScript sem
+checar tipos, então sem esse passo um erro de tipo passaria direto para o bundle.
+
+O contrato da API vive em [`src/types/api.ts`](frontend/src/types/api.ts), espelhando os DTOs do
+backend. Duas convenções do backend moldam esses tipos:
+
+- `default-property-inclusion: non_null` faz o campo nulo ser **omitido** do JSON, não vir como
+  `null` — por isso os opcionais são `campo?: T` e não `T | null`;
+- os códigos de erro são uma união fechada mais `(string & {})`, então um código novo no backend
+  não quebra a compilação, mas o editor continua completando os conhecidos.
+
+O `tsconfig.json` está em modo estrito, incluindo `noUncheckedIndexedAccess` e
+`exactOptionalPropertyTypes`.
 
 Ele cobre os dois perfis:
 
