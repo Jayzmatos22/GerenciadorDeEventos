@@ -63,10 +63,10 @@ public class SecurityConfig {
                         // Autenticacao
                         .requestMatchers(HttpMethod.POST, "/api/auth/registrar", "/api/auth/login")
                         .permitAll()
-                        // Catalogo publico de eventos: a lista e o detalhe, nada abaixo deles.
-                        // O padrao {id} casa um unico segmento, logo /api/eventos/1/inscricoes
-                        // continua exigindo autenticacao.
-                        .requestMatchers(HttpMethod.GET, "/api/eventos", "/api/eventos/{id}")
+                        // Catalogo publico de eventos: a lista e o detalhe, nada mais.
+                        // O padrao casa um unico segmento e so digitos, logo nem
+                        // /api/eventos/1/inscricoes nem /api/eventos/meus ficam publicos.
+                        .requestMatchers(HttpMethod.GET, "/api/eventos", "/api/eventos/{id:[0-9]+}")
                         .permitAll()
                         // Validacao publica de certificado
                         .requestMatchers(HttpMethod.GET, "/api/certificados/validar/**").permitAll()

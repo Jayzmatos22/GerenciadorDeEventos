@@ -99,7 +99,7 @@ teste correspondente.
 
 - [x] **0** — scaffold, `docker-compose`, Flyway `V1__schema.sql`, `/actuator/health`
 - [x] **1** — usuário, papéis, registro, login, JWT, `SecurityConfig`, tratamento de erro
-- [ ] **2** — CRUD de evento, fotos, listagem pública com filtros, transições de status
+- [x] **2** — CRUD de evento, fotos, listagem pública com filtros, transições de status
 - [ ] **3** — inscrição, fila de espera, cancelamento, promoção automática, concorrência
 - [ ] **4** — presença e certificado em PDF com validação pública
 - [ ] **5** — extração de evento por IA com fallback

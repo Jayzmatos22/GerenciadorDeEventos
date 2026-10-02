@@ -5,6 +5,9 @@ spring:
     model:
       chat: none
 app:
+  storage:
+    # Uploads dos testes vao para target/, que o build limpa.
+    diretorio: target/uploads-teste
   jwt:
     segredo: segredo-de-teste-hs256-com-no-minimo-32-bytes-para-o-hmac
     expiracao-horas: 8

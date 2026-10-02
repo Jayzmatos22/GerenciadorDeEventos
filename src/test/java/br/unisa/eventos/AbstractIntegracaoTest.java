@@ -108,6 +108,55 @@ public abstract class AbstractIntegracaoTest {
         }
     }
 
+    /** Cria um evento em RASCUNHO pelo organizador informado e devolve o id. */
+    protected long criarEvento(Autenticado organizador, String titulo, int limiteVagas,
+                               java.time.LocalDateTime inicio, java.time.LocalDateTime fim) {
+        try {
+            String corpo = """
+                    {"titulo":"%s","descricao":"Descricao de %s","local":"Auditorio UNISA",
+                     "dataInicio":"%s","dataFim":"%s","cargaHoraria":4,"limiteVagas":%d}"""
+                    .formatted(titulo, titulo, inicio, fim, limiteVagas);
+
+            String resposta = mockMvc.perform(post("/api/eventos")
+                            .header(org.springframework.http.HttpHeaders.AUTHORIZATION,
+                                    organizador.header())
+                            .contentType(MediaType.APPLICATION_JSON).content(corpo))
+                    .andExpect(status().isCreated())
+                    .andReturn().getResponse().getContentAsString();
+
+            return objectMapper.readTree(resposta).get("id").asLong();
+        } catch (Exception e) {
+            throw new IllegalStateException("Falha ao criar o evento de teste " + titulo, e);
+        }
+    }
+
+    /** Cria o evento e o publica, deixando-o pronto para receber inscricoes. */
+    protected long criarEventoPublicado(Autenticado organizador, String titulo, int limiteVagas) {
+        return publicar(organizador, criarEvento(organizador, titulo, limiteVagas,
+                java.time.LocalDateTime.now().plusDays(7),
+                java.time.LocalDateTime.now().plusDays(7).plusHours(4)));
+    }
+
+    protected long publicar(Autenticado organizador, long eventoId) {
+        return mudarStatus(organizador, eventoId, "PUBLICADO");
+    }
+
+    protected long mudarStatus(Autenticado organizador, long eventoId, String status) {
+        try {
+            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                            .patch("/api/eventos/{id}/status", eventoId)
+                            .header(org.springframework.http.HttpHeaders.AUTHORIZATION,
+                                    organizador.header())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"status":"%s"}""".formatted(status)))
+                    .andExpect(status().isOk());
+            return eventoId;
+        } catch (Exception e) {
+            throw new IllegalStateException("Falha ao mudar o evento para " + status, e);
+        }
+    }
+
     protected record Autenticado(long id, String email, String token) {
 
         public String header() {
