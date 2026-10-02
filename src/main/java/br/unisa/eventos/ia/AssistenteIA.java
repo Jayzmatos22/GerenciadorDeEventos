@@ -5,6 +5,8 @@ import br.unisa.eventos.shared.exception.IaIndisponivelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -19,12 +21,14 @@ public class AssistenteIA {
     private static final Logger log = LoggerFactory.getLogger(AssistenteIA.class);
 
     private final ExtratorEvento extrator;
+    private final ResumidorAvaliacoes resumidor;
     private final InteracaoIARegistro registro;
     private final ObjectMapper objectMapper;
 
-    AssistenteIA(ExtratorEvento extrator, InteracaoIARegistro registro,
-                 ObjectMapper objectMapper) {
+    AssistenteIA(ExtratorEvento extrator, ResumidorAvaliacoes resumidor,
+                 InteracaoIARegistro registro, ObjectMapper objectMapper) {
         this.extrator = extrator;
+        this.resumidor = resumidor;
         this.registro = registro;
         this.objectMapper = objectMapper;
     }
@@ -46,6 +50,23 @@ public class AssistenteIA {
             // RN-10: nenhuma falha da IA escapa como erro inesperado 500.
             registro.registrar(usuarioId, TipoInteracaoIA.EXTRACAO_EVENTO, texto, null, false);
             throw new IaIndisponivelException("A extracao por IA falhou.", e);
+        }
+    }
+
+    /** RF-10: resumo dos comentarios de um evento, tambem auditado em interacao_ia. */
+    public String resumirAvaliacoes(Long usuarioId, List<String> comentarios) {
+        String entrada = String.join("\n", comentarios);
+
+        try {
+            String resumo = resumidor.resumir(comentarios);
+            registro.registrar(usuarioId, TipoInteracaoIA.RESUMO_AVALIACAO, entrada, resumo, true);
+            return resumo;
+        } catch (IaIndisponivelException e) {
+            registro.registrar(usuarioId, TipoInteracaoIA.RESUMO_AVALIACAO, entrada, null, false);
+            throw e;
+        } catch (RuntimeException e) {
+            registro.registrar(usuarioId, TipoInteracaoIA.RESUMO_AVALIACAO, entrada, null, false);
+            throw new IaIndisponivelException("O resumo por IA falhou.", e);
         }
     }
 

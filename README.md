@@ -103,7 +103,7 @@ teste correspondente.
 - [x] **3** — inscrição, fila de espera, cancelamento, promoção automática, concorrência
 - [x] **4** — presença e certificado em PDF com validação pública
 - [x] **5** — extração de evento por IA com fallback
-- [ ] **6** — avaliações e resumo por IA
+- [x] **6** — avaliações e resumo por IA
 - [ ] **7** — frontend
 
 ## Licença
