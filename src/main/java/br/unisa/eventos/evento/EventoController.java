@@ -5,6 +5,9 @@ import br.unisa.eventos.evento.dto.EventoFotoResponse;
 import br.unisa.eventos.evento.dto.EventoRequest;
 import br.unisa.eventos.evento.dto.EventoResponse;
 import br.unisa.eventos.evento.dto.EventoResumoResponse;
+import br.unisa.eventos.ia.AssistenteIA;
+import br.unisa.eventos.ia.dto.EventoExtraidoDTO;
+import br.unisa.eventos.ia.dto.InterpretarEventoRequest;
 import br.unisa.eventos.usuario.UsuarioAutenticado;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,9 +40,11 @@ import java.time.LocalDateTime;
 public class EventoController {
 
     private final EventoService eventoService;
+    private final AssistenteIA assistenteIA;
 
-    public EventoController(EventoService eventoService) {
+    public EventoController(EventoService eventoService, AssistenteIA assistenteIA) {
         this.eventoService = eventoService;
+        this.assistenteIA = assistenteIA;
     }
 
     @GetMapping
@@ -77,6 +82,16 @@ public class EventoController {
             @Valid @RequestBody EventoRequest requisicao) {
         EventoResponse criado = eventoService.criar(usuarioLogado.id(), requisicao);
         return ResponseEntity.status(HttpStatus.CREATED).body(criado);
+    }
+
+    @PostMapping("/interpretar")
+    @PreAuthorize("hasRole('ORGANIZADOR')")
+    @Operation(summary = "Extrai os campos de um evento a partir de texto livre;"
+            + " nao persiste nada, devolve um rascunho para revisao")
+    public EventoExtraidoDTO interpretar(
+            @AuthenticationPrincipal UsuarioAutenticado usuarioLogado,
+            @Valid @RequestBody InterpretarEventoRequest requisicao) {
+        return assistenteIA.interpretarEvento(usuarioLogado.id(), requisicao.texto());
     }
 
     @PutMapping("/{id}")
