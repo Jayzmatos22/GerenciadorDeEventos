@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/auth'
 import { Botao } from './ui'
 
 function ItemMenu({ to, children }: { to: string; children: ReactNode }) {
@@ -24,7 +24,7 @@ export default function Layout() {
 
   function encerrarSessao() {
     sair()
-    navegar('/')
+    void navegar('/')
   }
 
   return (

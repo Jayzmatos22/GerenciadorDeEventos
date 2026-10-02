@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import type { EstadoDeRota } from '../types/rota'
 import { ApiError } from '../api/client'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/auth'
 import { Alerta, Botao, Campo, Cartao, Entrada } from '../components/ui'
 
 export default function Entrar() {
@@ -20,7 +21,8 @@ export default function Entrar() {
     setEnviando(true)
     try {
       await entrar(email, senha)
-      navegar(localizacao.state?.de ?? '/', { replace: true })
+      const origem = (localizacao.state as EstadoDeRota | null)?.de
+      void navegar(origem ?? '/', { replace: true })
     } catch (falha) {
       setErro(falha instanceof ApiError ? falha.message : 'Não foi possível entrar agora.')
     } finally {
@@ -33,7 +35,12 @@ export default function Entrar() {
       <h1 className="mb-6 text-2xl font-semibold text-slate-900">Entrar</h1>
 
       <Cartao>
-        <form onSubmit={enviar} className="space-y-4">
+        <form
+          onSubmit={(evento) => {
+            void enviar(evento)
+          }}
+          className="space-y-4"
+        >
           <Campo rotulo="E-mail">
             <Entrada
               type="email"

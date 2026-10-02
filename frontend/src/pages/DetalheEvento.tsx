@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ApiError, api } from '../api/client'
 import type { EventoResponse, InscricaoResponse } from '../types/api'
-import { useAuth } from '../context/AuthContext'
+import type { EstadoDeRota } from '../types/rota'
+import { useAuth } from '../context/auth'
 import { Alerta, Botao, Cartao, Carregando, Etiqueta } from '../components/ui'
 import { periodoDoEvento } from '../utils/formato'
 
@@ -18,9 +19,9 @@ export default function DetalheEvento() {
   const [inscrevendo, setInscrevendo] = useState(false)
 
   const carregar = useCallback(async () => {
-    setErro(null)
     try {
       setEvento(await api.get<EventoResponse>(`/api/eventos/${id}`))
+      setErro(null)
     } catch (falha) {
       setErro(
         falha instanceof ApiError && falha.status === 404
@@ -31,12 +32,12 @@ export default function DetalheEvento() {
   }, [id])
 
   useEffect(() => {
-    carregar()
+    void carregar()
   }, [carregar])
 
   async function inscrever() {
     if (!autenticado) {
-      navegar('/entrar', { state: { de: `/eventos/${id}` } })
+      void navegar('/entrar', { state: { de: `/eventos/${id}` } satisfies EstadoDeRota })
       return
     }
 
@@ -125,7 +126,13 @@ export default function DetalheEvento() {
           </dl>
 
           {aberto && (!autenticado || ehParticipante) && (
-            <Botao onClick={inscrever} disabled={inscrevendo} className="w-full">
+            <Botao
+              onClick={() => {
+                void inscrever()
+              }}
+              disabled={inscrevendo}
+              className="w-full"
+            >
               {inscrevendo
                 ? 'Enviando…'
                 : lotado

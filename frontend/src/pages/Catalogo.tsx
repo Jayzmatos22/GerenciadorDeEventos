@@ -68,9 +68,10 @@ export default function Catalogo() {
   const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
 
+  // Nada de setState antes do primeiro await: chamada sincrona dentro do efeito dispara
+  // render em cascata. O indicador de carregamento comeca ligado e so desliga ao fim; numa
+  // troca de pagina a lista anterior continua visivel ate a nova chegar, sem piscar vazio.
   const buscar = useCallback(async () => {
-    setCarregando(true)
-    setErro(null)
     try {
       const parametros = query({
         q: aplicados.q,
@@ -80,6 +81,7 @@ export default function Catalogo() {
         size: 9,
       })
       setResultado(await api.get<Pagina<EventoResumoResponse>>(`/api/eventos${parametros}`))
+      setErro(null)
     } catch {
       setErro('Não foi possível carregar os eventos agora.')
     } finally {
@@ -88,7 +90,7 @@ export default function Catalogo() {
   }, [aplicados, pagina])
 
   useEffect(() => {
-    buscar()
+    void buscar()
   }, [buscar])
 
   function aplicarFiltros(evento: FormEvent<HTMLFormElement>) {

@@ -1,26 +1,13 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { api, sessao } from '../api/client'
 import type { LoginResponse, RegistrarRequest, UsuarioResponse } from '../types/api'
+import { AuthContext, type Autenticacao } from './auth'
 
-interface Autenticacao {
-  usuario: UsuarioResponse | null
-  autenticado: boolean
-  ehOrganizador: boolean
-  ehParticipante: boolean
-  entrar: (email: string, senha: string) => Promise<UsuarioResponse>
-  registrar: (dados: RegistrarRequest) => Promise<UsuarioResponse>
-  sair: () => void
-}
-
-const AuthContext = createContext<Autenticacao | null>(null)
-
+/**
+ * O contexto e o hook `useAuth` vivem em `auth.ts`, não aqui. O Vite só consegue atualizar um
+ * módulo em memória se ele exportar apenas componentes; exportar um hook junto derrubaria o
+ * estado da aplicação a cada salvamento durante o desenvolvimento.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<UsuarioResponse | null>(() => sessao.usuario())
 
@@ -61,10 +48,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>
-}
-
-export function useAuth(): Autenticacao {
-  const contexto = useContext(AuthContext)
-  if (!contexto) throw new Error('useAuth precisa estar dentro de AuthProvider')
-  return contexto
 }

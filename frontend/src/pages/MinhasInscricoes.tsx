@@ -46,7 +46,12 @@ function FormularioAvaliacao({ inscricaoId, onAvaliada }: FormularioAvaliacaoPro
   }
 
   return (
-    <form onSubmit={enviar} className="mt-4 space-y-3 border-t border-slate-200 pt-4">
+    <form
+      onSubmit={(evento) => {
+        void enviar(evento)
+      }}
+      className="mt-4 space-y-3 border-t border-slate-200 pt-4"
+    >
       <Campo rotulo="Sua nota">
         <Selecao value={nota} onChange={(e) => setNota(e.target.value)}>
           {[5, 4, 3, 2, 1].map((valor) => (
@@ -150,13 +155,25 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
 
       <div className="mt-4 flex flex-wrap gap-2">
         {ativa && (
-          <Botao variante="secundario" onClick={cancelar} disabled={ocupado}>
+          <Botao
+            variante="secundario"
+            onClick={() => {
+              void cancelar()
+            }}
+            disabled={ocupado}
+          >
             Cancelar inscrição
           </Botao>
         )}
         {eventoTerminou && inscricao.status === 'CONFIRMADA' && (
           <>
-            <Botao variante="secundario" onClick={baixarCertificado} disabled={ocupado}>
+            <Botao
+              variante="secundario"
+              onClick={() => {
+                void baixarCertificado()
+              }}
+              disabled={ocupado}
+            >
               Baixar certificado
             </Botao>
             <Botao variante="discreto" onClick={() => setAvaliando((aberto) => !aberto)}>
@@ -191,14 +208,13 @@ export default function MinhasInscricoes() {
   const [mensagem, setMensagem] = useState<string | null>(null)
 
   const carregar = useCallback(async () => {
-    setCarregando(true)
-    setErro(null)
     try {
       setResultado(
         await api.get<Pagina<InscricaoResponse>>(
           `/api/inscricoes/minhas${query({ page: pagina, size: 10 })}`,
         ),
       )
+      setErro(null)
     } catch {
       setErro('Não foi possível carregar suas inscrições agora.')
     } finally {
@@ -207,7 +223,7 @@ export default function MinhasInscricoes() {
   }, [pagina])
 
   useEffect(() => {
-    carregar()
+    void carregar()
   }, [carregar])
 
   return (

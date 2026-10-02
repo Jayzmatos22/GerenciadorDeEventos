@@ -49,7 +49,7 @@ export default function ValidarCertificado() {
   function consultar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     const limpo = codigo.trim().toUpperCase()
-    if (limpo) navegar(`/certificados/validar/${limpo}`)
+    if (limpo) void navegar(`/certificados/validar/${limpo}`)
   }
 
   return (

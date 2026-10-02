@@ -78,7 +78,7 @@ function PainelInscritos({ eventoId, onMensagem }: PainelInscritosProps) {
   }, [eventoId])
 
   useEffect(() => {
-    carregar()
+    void carregar()
   }, [carregar])
 
   const idsComPresenca = new Set(presentes.map((presenca) => presenca.inscricaoId))
@@ -138,7 +138,9 @@ function PainelInscritos({ eventoId, onMensagem }: PainelInscritosProps) {
                   ) : (
                     <Botao
                       variante="secundario"
-                      onClick={() => registrarPresenca(inscrito.id)}
+                      onClick={() => {
+                        void registrarPresenca(inscrito.id)
+                      }}
                       disabled={ocupado === inscrito.id}
                     >
                       Registrar presença
@@ -213,7 +215,7 @@ function PainelAvaliacoes({ eventoId }: { eventoId: string }) {
   }, [eventoId])
 
   useEffect(() => {
-    carregar()
+    void carregar()
   }, [carregar])
 
   async function gerarResumo() {
@@ -249,7 +251,12 @@ function PainelAvaliacoes({ eventoId }: { eventoId: string }) {
               resumo anterior.
             </p>
           </div>
-          <Botao onClick={gerarResumo} disabled={gerando}>
+          <Botao
+            onClick={() => {
+              void gerarResumo()
+            }}
+            disabled={gerando}
+          >
             {gerando ? 'Gerando…' : resumo ? 'Gerar novamente' : 'Gerar resumo'}
           </Botao>
         </div>
@@ -360,7 +367,9 @@ function PainelFotos({ eventoId, fotos, onMudou, onMensagem }: PainelFotosProps)
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          onChange={enviar}
+          onChange={(evento) => {
+            void enviar(evento)
+          }}
           disabled={ocupado}
           className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-marinho-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-marinho-700"
         />
@@ -382,7 +391,9 @@ function PainelFotos({ eventoId, fotos, onMudou, onMensagem }: PainelFotosProps)
               />
               <Botao
                 variante="discreto"
-                onClick={() => remover(foto.id)}
+                onClick={() => {
+                  void remover(foto.id)
+                }}
                 disabled={ocupado}
                 className="w-full"
               >
@@ -423,7 +434,7 @@ export default function GerenciarEvento() {
   }, [id])
 
   useEffect(() => {
-    carregar()
+    void carregar()
   }, [carregar])
 
   async function mudarStatus(destino: StatusEvento) {
@@ -476,7 +487,9 @@ export default function GerenciarEvento() {
             <Botao
               key={destino}
               variante={variante ?? 'primario'}
-              onClick={() => mudarStatus(destino)}
+              onClick={() => {
+                void mudarStatus(destino)
+              }}
               disabled={mudandoStatus}
             >
               {rotulo}

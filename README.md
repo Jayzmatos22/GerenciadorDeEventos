@@ -88,6 +88,7 @@ do Vite, então em desenvolvimento não há CORS no caminho.
 cd frontend
 npm install
 npm run dev        # http://localhost:5173
+npm run lint       # eslint, com regras que usam o type checker
 npm run typecheck  # tsc --noEmit
 npm run build      # typecheck + build de produção
 ```
@@ -105,6 +106,28 @@ backend. Duas convenções do backend moldam esses tipos:
 
 O `tsconfig.json` está em modo estrito, incluindo `noUncheckedIndexedAccess` e
 `exactOptionalPropertyTypes`.
+
+### Lint
+
+O ESLint usa `typescript-eslint` em modo *type-aware* (`recommendedTypeChecked` e
+`stylisticTypeChecked`), mais as regras do React Hooks e do React Refresh. Type-aware é o que
+pega o que o `tsc` sozinho deixa passar — promessa não aguardada, handler `async` entregue a um
+atributo JSX que espera retorno `void`, `await` em valor que não é promessa.
+
+Dois pontos que valem saber antes de mexer:
+
+- **O TypeScript está fixado em 6.x de propósito.** O `typescript-eslint` ainda não suporta a
+  API do TypeScript 7 e aborta com erro, não com aviso
+  ([issue 10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)).
+- **Uma única regra está desligada**, `react-hooks/set-state-in-effect`, com a justificativa no
+  próprio `eslint.config.js`. Ela proíbe chamar de dentro de um efeito qualquer função cujo
+  corpo contenha `setState`, mesmo quando o `setState` só acontece depois do `await` — ela não
+  consegue provar a fronteira assíncrona. Isso veta o padrão de buscar dados no efeito, que é o
+  que se usa sem uma biblioteca de data fetching. O projeto não usa nenhuma, por decisão.
+
+Ainda assim, as buscas de dados foram reescritas para não chamar `setState` de forma síncrona
+antes do primeiro `await`: isso evita render em cascata e, de quebra, a lista anterior continua
+visível durante uma troca de página em vez de piscar vazia.
 
 Ele cobre os dois perfis:
 

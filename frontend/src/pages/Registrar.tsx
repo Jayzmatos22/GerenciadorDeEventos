@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/auth'
 import { Alerta, Botao, Campo, Cartao, Entrada, Selecao } from '../components/ui'
 import type { RegistrarRequest } from '../types/api'
 
@@ -31,7 +31,7 @@ export default function Registrar() {
     setEnviando(true)
     try {
       await registrar(dados)
-      navegar('/', { replace: true })
+      void navegar('/', { replace: true })
     } catch (falha) {
       if (falha instanceof ApiError) {
         setErrosPorCampo(falha.errosPorCampo)
@@ -49,7 +49,12 @@ export default function Registrar() {
       <h1 className="mb-6 text-2xl font-semibold text-slate-900">Criar conta</h1>
 
       <Cartao>
-        <form onSubmit={enviar} className="space-y-4">
+        <form
+          onSubmit={(evento) => {
+            void enviar(evento)
+          }}
+          className="space-y-4"
+        >
           <Campo rotulo="Nome" erro={errosPorCampo.nome}>
             <Entrada
               value={dados.nome}

@@ -59,7 +59,9 @@ const BASE_ENTRADA =
   'focus:ring-marinho-100'
 
 /** `erro` só pinta a borda; a mensagem em si é responsabilidade do {@link Campo}. */
-type ComErro = { erro?: string | undefined }
+interface ComErro {
+  erro?: string | undefined
+}
 
 export function Entrada({
   erro,

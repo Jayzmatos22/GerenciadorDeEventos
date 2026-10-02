@@ -20,14 +20,13 @@ export default function MeusEventos() {
   const [erro, setErro] = useState<string | null>(null)
 
   const carregar = useCallback(async () => {
-    setCarregando(true)
-    setErro(null)
     try {
       setResultado(
         await api.get<Pagina<EventoResumoResponse>>(
           `/api/eventos/meus${query({ page: pagina, size: 10 })}`,
         ),
       )
+      setErro(null)
     } catch {
       setErro('Não foi possível carregar seus eventos agora.')
     } finally {
@@ -36,7 +35,7 @@ export default function MeusEventos() {
   }, [pagina])
 
   useEffect(() => {
-    carregar()
+    void carregar()
   }, [carregar])
 
   return (

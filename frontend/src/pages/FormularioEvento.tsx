@@ -104,7 +104,9 @@ function AssistenteIA({ onExtraido }: { onExtraido: (extraido: EventoExtraidoDTO
 
       <Botao
         type="button"
-        onClick={interpretar}
+        onClick={() => {
+          void interpretar()
+        }}
         disabled={interpretando || texto.trim().length === 0}
         className="mt-3"
       >
@@ -209,7 +211,7 @@ export default function FormularioEvento() {
       const salvo = editando
         ? await api.put<EventoResponse>(`/api/eventos/${id}`, corpo)
         : await api.post<EventoResponse>('/api/eventos', corpo)
-      navegar(`/organizador/eventos/${salvo.id}`, { replace: true })
+      void navegar(`/organizador/eventos/${salvo.id}`, { replace: true })
     } catch (falha) {
       if (falha instanceof ApiError) {
         setErrosPorCampo(falha.errosPorCampo)
@@ -250,7 +252,12 @@ export default function FormularioEvento() {
       )}
 
       <Cartao>
-        <form onSubmit={salvar} className="space-y-4">
+        <form
+          onSubmit={(evento) => {
+            void salvar(evento)
+          }}
+          className="space-y-4"
+        >
           <Campo rotulo="Título" erro={errosPorCampo.titulo} dica={dicaSugerida('titulo')}>
             <Entrada
               value={formulario.titulo}
@@ -347,7 +354,13 @@ export default function FormularioEvento() {
             <Botao type="submit" disabled={salvando}>
               {salvando ? 'Salvando…' : editando ? 'Salvar alterações' : 'Criar rascunho'}
             </Botao>
-            <Botao type="button" variante="discreto" onClick={() => navegar(-1)}>
+            <Botao
+              type="button"
+              variante="discreto"
+              onClick={() => {
+                void navegar(-1)
+              }}
+            >
               Cancelar
             </Botao>
           </div>
