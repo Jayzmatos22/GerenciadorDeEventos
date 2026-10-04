@@ -59,7 +59,8 @@ cp .env.example .env    # e preencha JWT_SECRET
 
 A API sobe em `http://localhost:8080`:
 
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Swagger UI: `http://localhost:8080/swagger-ui.html` (só no perfil `dev`; em produção a
+  documentação fica desligada, porque descreve a superfície inteira da API)
 - Health: `http://localhost:8080/actuator/health`
 
 ### Variáveis de ambiente
@@ -229,7 +230,9 @@ recebendo só via Pull Request: o PR chega com as três etapas verificadas.
 ## Documentação
 
 A especificação técnica de implementação está em
-[`docs/ESPECIFICACAO-TECNICA.md`](docs/ESPECIFICACAO-TECNICA.md). As regras de negócio têm
+[`docs/ESPECIFICACAO-TECNICA.md`](docs/ESPECIFICACAO-TECNICA.md), e a revisão de segurança —
+o que foi corrigido, o que foi verificado e quais riscos foram aceitos e por quê — em
+[`docs/REVISAO-DE-SEGURANCA.md`](docs/REVISAO-DE-SEGURANCA.md). As regras de negócio têm
 identificadores `RN-xx` que aparecem como comentário no service que as implementa e no nome do
 teste correspondente.
 

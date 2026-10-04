@@ -47,7 +47,12 @@ management:
         include: health,info
 
 springdoc:
+  # Desligados por padrao. A documentacao descreve a superficie inteira da API, incluindo as
+  # rotas administrativas, e nao ha motivo para publicar isso em producao. O perfil dev liga.
+  api-docs:
+    enabled: ${SWAGGER_HABILITADO:false}
   swagger-ui:
+    enabled: ${SWAGGER_HABILITADO:false}
     path: /swagger-ui.html
 
 app:

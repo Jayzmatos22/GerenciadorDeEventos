@@ -20,7 +20,8 @@ public record RegistrarRequest(
         String email,
 
         @NotBlank(message = "e obrigatoria")
-        @Size(min = 8, max = 72, message = "deve ter no minimo 8 caracteres")
+        @Size(min = 8, message = "deve ter no minimo 8 caracteres")
+        @SenhaCompativelComBCrypt
         String senha,
 
         Papel papel

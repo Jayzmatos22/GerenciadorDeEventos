@@ -17,6 +17,12 @@ app:
     # Segredo fixo para desenvolvimento. Em producao vem de JWT_SECRET.
     segredo: ${JWT_SECRET:desenvolvimento-local-segredo-hs256-com-no-minimo-32-bytes}
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 logging:
   level:
     br.unisa.eventos: DEBUG
