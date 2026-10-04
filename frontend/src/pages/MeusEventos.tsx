@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, query } from '../api/client'
+import { api, foiCancelada, query } from '../api/client'
 import type { EventoResumoResponse, Pagina } from '../types/api'
 import {
   Alerta,
@@ -19,23 +19,29 @@ export default function MeusEventos() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
-  const carregar = useCallback(async () => {
+  const carregar = useCallback(async (signal: AbortSignal) => {
     try {
       setResultado(
         await api.get<Pagina<EventoResumoResponse>>(
           `/api/eventos/meus${query({ page: pagina, size: 10 })}`,
+          { signal },
         ),
       )
       setErro(null)
-    } catch {
+    } catch (falha) {
+      if (foiCancelada(falha)) return
       setErro('Não foi possível carregar seus eventos agora.')
-    } finally {
-      setCarregando(false)
     }
+
+    setCarregando(false)
   }, [pagina])
 
   useEffect(() => {
-    void carregar()
+    const controlador = new AbortController()
+    void carregar(controlador.signal)
+    return () => {
+      controlador.abort()
+    }
   }, [carregar])
 
   return (

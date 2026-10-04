@@ -7,6 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "app")
 public record AppProperties(
+        /** Fuso usado por todo {@code LocalDateTime.now()} da aplicacao. */
+        String fusoHorario,
         Jwt jwt,
         String urlBase,
         Avaliacao avaliacao,

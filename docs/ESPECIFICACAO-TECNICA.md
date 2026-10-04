@@ -462,7 +462,7 @@ preenchido.
 |---|---|---|
 | Unitário | RN-01 a RN-11, isoladamente, com repositórios mockados | JUnit 5 + Mockito |
 | Integração | endpoints REST, persistência real, segurança, migrations | `@SpringBootTest` + Testcontainers |
-| E2E | criar evento → inscrever → check-in → certificado; e o caminho IA indisponível | 🔶 a definir |
+| E2E | criar evento → inscrever → check-in → certificado; e o caminho IA indisponível | **Playwright** (`e2e/`) |
 
 Testes obrigatórios na v1, por serem onde o projeto realmente pode quebrar:
 

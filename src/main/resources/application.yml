@@ -51,6 +51,9 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  # Fixa o fuso da JVM. Sem isto, LocalDateTime.now() segue o fuso do servidor e a janela de
+  # check-in (RN-04) e a checagem de evento terminado (RN-06) deslocam junto.
+  fuso-horario: ${TZ:America/Sao_Paulo}
   jwt:
     segredo: ${JWT_SECRET:}
     expiracao-horas: 8

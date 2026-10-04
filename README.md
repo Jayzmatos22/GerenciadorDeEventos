@@ -20,7 +20,8 @@ Projeto acadêmico — UNISA, Análise e Desenvolvimento de Sistemas.
 | PDF | iText Core 9.8 |
 | Build | Maven (wrapper no repo) |
 | Testes | JUnit 5, Mockito, Testcontainers |
-| Frontend | React 19 + TypeScript 7, Tailwind 4, build com Vite |
+| Frontend | React 19 + TypeScript 6, Tailwind 4, build com Vite |
+| E2E | Playwright |
 
 ### Notas de compatibilidade
 
@@ -165,6 +166,25 @@ Os cinco testes que a especificação exige estão cobertos:
 
 O teste de concorrência não passa por acaso: as duas threads calculam `CONFIRMADA`, uma perde a
 disputa pela versão do evento, repete a transação e entra na fila na posição 1.
+
+### Testes de ponta a ponta
+
+Ficam em [`e2e/`](e2e) e cobrem o que a seção 11 da especificação nomeia: criar evento →
+inscrever → check-in → certificado, e o caminho da IA indisponível.
+
+```bash
+cd e2e
+npm install
+npm test          # sobe Postgres, backend e frontend sozinho
+npm run relatorio # abre o relatório da última execução
+```
+
+Um comando só: o Playwright sobe o PostgreSQL pelo `docker-compose`, o backend e o Vite, e
+derruba tudo ao terminar. A pilha sobe com `IA_HABILITADA=false` de propósito — sem um modelo
+no ar, o caminho de indisponibilidade da RN-10 é o único lado da IA verificável.
+
+Os testes semeiam os próprios dados com e-mails únicos, então rodam em paralelo e repetidas
+vezes contra o mesmo banco sem limpar nada entre execuções.
 
 ## Documentação
 

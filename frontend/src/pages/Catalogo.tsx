@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ChangeEvent, FormEvent } from 'react'
-import { api, query } from '../api/client'
+import { api, foiCancelada, query } from '../api/client'
 import type { EventoResumoResponse, Pagina } from '../types/api'
 import {
   Alerta,
@@ -65,32 +65,51 @@ export default function Catalogo() {
   const [aplicados, setAplicados] = useState<Filtros>(FILTROS_VAZIOS)
   const [pagina, setPagina] = useState(0)
   const [resultado, setResultado] = useState<Pagina<EventoResumoResponse> | null>(null)
+  // Qual busca o conteúdo em tela representa. Comparar com a busca atual diz se há uma
+  // requisição em voo sem precisar de um setState síncrono dentro do efeito.
+  const [buscaExibida, setBuscaExibida] = useState<string | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
 
-  // Nada de setState antes do primeiro await: chamada sincrona dentro do efeito dispara
-  // render em cascata. O indicador de carregamento comeca ligado e so desliga ao fim; numa
-  // troca de pagina a lista anterior continua visivel ate a nova chegar, sem piscar vazio.
-  const buscar = useCallback(async () => {
-    try {
-      const parametros = query({
-        q: aplicados.q,
-        dataInicio: aplicados.dataInicio ? `${aplicados.dataInicio}T00:00:00` : '',
-        dataFim: aplicados.dataFim ? `${aplicados.dataFim}T23:59:59` : '',
-        page: pagina,
-        size: 9,
-      })
-      setResultado(await api.get<Pagina<EventoResumoResponse>>(`/api/eventos${parametros}`))
-      setErro(null)
-    } catch {
-      setErro('Não foi possível carregar os eventos agora.')
-    } finally {
-      setCarregando(false)
-    }
-  }, [aplicados, pagina])
+  // Nada de setState antes do primeiro await: chamada síncrona dentro do efeito dispara
+  // render em cascata. A lista anterior fica visível até a nova chegar, em vez de piscar
+  // vazia, e o aviso de "atualizando" cobre a espera.
+  const buscaAtual = JSON.stringify({ ...aplicados, pagina })
 
+  const buscar = useCallback(async (signal: AbortSignal) => {
+    const parametros = query({
+      q: aplicados.q,
+      dataInicio: aplicados.dataInicio ? `${aplicados.dataInicio}T00:00:00` : '',
+      dataFim: aplicados.dataFim ? `${aplicados.dataFim}T23:59:59` : '',
+      page: pagina,
+      size: 9,
+    })
+
+    try {
+      const encontrados = await api.get<Pagina<EventoResumoResponse>>(
+        `/api/eventos${parametros}`,
+        { signal },
+      )
+      setResultado(encontrados)
+      setErro(null)
+    } catch (falha) {
+      // Pedido cancelado: quem o substituiu é que vai mandar na tela.
+      if (foiCancelada(falha)) return
+      setErro('Não foi possível carregar os eventos agora.')
+    }
+
+    setBuscaExibida(buscaAtual)
+    setCarregando(false)
+  }, [aplicados, pagina, buscaAtual])
+
+  // Cancelar o pedido anterior não é só economia de rede: sem isso uma resposta antiga pode
+  // chegar depois da nova e repor a lista velha na tela.
   useEffect(() => {
-    void buscar()
+    const controlador = new AbortController()
+    void buscar(controlador.signal)
+    return () => {
+      controlador.abort()
+    }
   }, [buscar])
 
   function aplicarFiltros(evento: FormEvent<HTMLFormElement>) {
@@ -149,6 +168,10 @@ export default function Catalogo() {
       <Alerta>{erro}</Alerta>
 
       {carregando && <Carregando texto="Buscando eventos…" />}
+
+      {!carregando && buscaExibida !== buscaAtual && (
+        <p className="text-sm text-slate-500">Atualizando a lista…</p>
+      )}
 
       {!carregando && resultado?.content.length === 0 && (
         <Vazio titulo="Nenhum evento encontrado">

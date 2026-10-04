@@ -96,6 +96,20 @@ type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 interface OpcoesRequisicao {
   corpo?: unknown
   formData?: FormData
+  /**
+   * Permite abortar o pedido quando um mais novo o substitui. O `| undefined` é explícito
+   * porque `exactOptionalPropertyTypes` distingue "ausente" de "presente e indefinido", e
+   * quem chama nem sempre tem um sinal para passar.
+   */
+  signal?: AbortSignal | undefined
+}
+
+/**
+ * Distingue "o pedido foi cancelado porque outro o substituiu" de "a requisição falhou".
+ * Sem isso, trocar de filtro depressa pintaria a tela de erro.
+ */
+export function foiCancelada(erro: unknown): boolean {
+  return erro instanceof DOMException && erro.name === 'AbortError'
 }
 
 /**
@@ -106,7 +120,7 @@ interface OpcoesRequisicao {
 async function requisicao<T>(
   metodo: Metodo,
   caminho: string,
-  { corpo, formData }: OpcoesRequisicao = {},
+  { corpo, formData, signal }: OpcoesRequisicao = {},
 ): Promise<T> {
   const corpoDaRequisicao = formData ?? (corpo !== undefined ? JSON.stringify(corpo) : null)
 
@@ -114,12 +128,14 @@ async function requisicao<T>(
     method: metodo,
     headers: cabecalhos(corpo !== undefined),
     body: corpoDaRequisicao,
+    signal: signal ?? null,
   })
   return (await tratarResposta(resposta)) as T
 }
 
 export const api = {
-  get: <T>(caminho: string): Promise<T> => requisicao<T>('GET', caminho),
+  get: <T>(caminho: string, opcoes?: { signal?: AbortSignal | undefined }): Promise<T> =>
+    requisicao<T>('GET', caminho, opcoes),
 
   /** Baixa um PDF; o backend responde `application/pdf` nas rotas de certificado. */
   getPdf: (caminho: string): Promise<Blob> => requisicao<Blob>('GET', caminho),

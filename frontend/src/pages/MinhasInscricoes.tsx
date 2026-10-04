@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { ApiError, api, query } from '../api/client'
+import { Link } from 'react-router-dom'
+import { ApiError, api, foiCancelada, query } from '../api/client'
 import {
   Alerta,
   AreaTexto,
@@ -91,6 +92,7 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
   const [avaliando, setAvaliando] = useState(false)
   const [ocupado, setOcupado] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [certificado, setCertificado] = useState<CertificadoResponse | null>(null)
 
   const ativa = inscricao.status === 'CONFIRMADA' || inscricao.status === 'EM_ESPERA'
   const eventoTerminou = new Date(evento.dataFim) < new Date()
@@ -114,8 +116,11 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
     setOcupado(true)
     try {
       // A emissão é idempotente: chamar de novo devolve o mesmo certificado (RN-05).
-      await api.post<CertificadoResponse>(`/api/inscricoes/${inscricao.id}/certificado`)
+      const emitido = await api.post<CertificadoResponse>(
+        `/api/inscricoes/${inscricao.id}/certificado`,
+      )
       const pdf = await api.getPdf(`/api/inscricoes/${inscricao.id}/certificado`)
+      setCertificado(emitido)
 
       const url = URL.createObjectURL(pdf)
       const link = document.createElement('a')
@@ -187,6 +192,24 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
         <Alerta>{erro}</Alerta>
       </div>
 
+      {certificado && (
+        <div className="mt-3 rounded-lg bg-emerald-50 p-3 text-sm ring-1 ring-emerald-200">
+          <p className="font-semibold text-emerald-800">Certificado emitido</p>
+          <p className="mt-1 text-emerald-900">
+            Código de autenticidade:{' '}
+            <span className="font-mono text-xs">{certificado.codigoAutenticidade}</span>
+          </p>
+          <p className="mt-1">
+            <Link
+              to={`/certificados/validar/${certificado.codigoAutenticidade}`}
+              className="font-medium text-marinho-700 underline"
+            >
+              Conferir a página pública de validação
+            </Link>
+          </p>
+        </div>
+      )}
+
       {avaliando && (
         <FormularioAvaliacao
           inscricaoId={inscricao.id}
@@ -207,23 +230,29 @@ export default function MinhasInscricoes() {
   const [erro, setErro] = useState<string | null>(null)
   const [mensagem, setMensagem] = useState<string | null>(null)
 
-  const carregar = useCallback(async () => {
+  const carregar = useCallback(async (signal?: AbortSignal) => {
     try {
       setResultado(
         await api.get<Pagina<InscricaoResponse>>(
           `/api/inscricoes/minhas${query({ page: pagina, size: 10 })}`,
+          { signal },
         ),
       )
       setErro(null)
-    } catch {
+    } catch (falha) {
+      if (foiCancelada(falha)) return
       setErro('Não foi possível carregar suas inscrições agora.')
-    } finally {
-      setCarregando(false)
     }
+
+    setCarregando(false)
   }, [pagina])
 
   useEffect(() => {
-    void carregar()
+    const controlador = new AbortController()
+    void carregar(controlador.signal)
+    return () => {
+      controlador.abort()
+    }
   }, [carregar])
 
   return (
