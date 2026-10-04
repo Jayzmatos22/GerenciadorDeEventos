@@ -1,0 +1,60 @@
+# Pilha completa para execução fora do ambiente de desenvolvimento (seção 13.4).
+#
+#   cp .env.example .env   # e preencha JWT_SECRET e as senhas
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# O frontend fica em http://localhost:8081 e é ele quem fala com o backend: a API e as fotos
+# passam pelo nginx na mesma origem, então não há CORS no caminho.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-eventos}
+      POSTGRES_USER: ${DB_USER:-eventos}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env}
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-eventos} -d ${DB_NAME:-eventos}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Sem portas publicadas: só o backend precisa alcançar o banco.
+
+  backend:
+    build:
+      context: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-America/Sao_Paulo}
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-eventos}
+      DB_USER: ${DB_USER:-eventos}
+      DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+      APP_URL: ${APP_URL:-http://localhost:8081}
+      IA_HABILITADA: ${IA_HABILITADA:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+    volumes:
+      # As fotos de evento vivem em disco (seção 13.3). Sem este volume elas somem a cada
+      # recriação do contêiner.
+      - uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${PORTA_PUBLICA:-8081}:80"
+
+volumes:
+  pgdata:
+  uploads:

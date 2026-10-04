@@ -1,0 +1,12 @@
+target/
+.git/
+.github/
+.idea/
+.vscode/
+frontend/
+e2e/
+docs/
+uploads/
+*.log
+.env
+README.md

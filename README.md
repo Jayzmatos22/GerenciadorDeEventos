@@ -186,6 +186,30 @@ no ar, o caminho de indisponibilidade da RN-10 é o único lado da IA verificáv
 Os testes semeiam os próprios dados com e-mails únicos, então rodam em paralelo e repetidas
 vezes contra o mesmo banco sem limpar nada entre execuções.
 
+## Rodando em produção
+
+A pilha inteira sobe com Docker (seção 13.4 da especificação):
+
+```bash
+cp .env.example .env    # e preencha JWT_SECRET e DB_PASSWORD
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+O sistema fica em `http://localhost:8081`. Decisões que valem conhecer:
+
+- **O nginx serve o frontend e faz o proxy de `/api` e `/uploads`**, então em produção tudo
+  está na mesma origem e não há CORS no caminho. Rotas do React Router caem em `index.html`,
+  senão recarregar a página em `/organizador` devolveria 404.
+- **O nginx resolve o backend a cada requisição**, não na subida. Sem isso ele morre no boot
+  com `host not found in upstream` quando o backend ainda não existe, e fica com um IP velho
+  quando o contêiner reinicia.
+- **O backend roda sem root** e a imagem é montada em camadas separadas para dependências e
+  código: trocar o código não invalida a camada das dependências.
+- **As fotos ficam num volume** (`uploads`). Sem ele, somem a cada recriação do contêiner.
+- **O Postgres não publica porta**: só o backend o alcança.
+- `JWT_SECRET` e `DB_PASSWORD` não têm valor padrão — o compose falha na subida se faltarem,
+  em vez de subir com algo inseguro.
+
 ## Documentação
 
 A especificação técnica de implementação está em

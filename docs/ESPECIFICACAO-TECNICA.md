@@ -510,8 +510,10 @@ a mudança seja local.
 3. **Upload de imagens.** v1: salvar em disco local e servir por `/uploads/**`. Se precisar de
    deploy em plataforma efêmera, trocar por Cloudinary ou S3 — só a implementação do serviço de
    storage muda.
-4. **Deploy.** Não definido. O `docker-compose` cobre o desenvolvimento; produção fica para
-   depois da fase 4.
+4. **Deploy.** ~~Não definido. O `docker-compose` cobre o desenvolvimento; produção fica para
+   depois da fase 4.~~ **Decidido:** imagens Docker multi-stage para backend e frontend, com
+   `docker-compose.prod.yml` subindo a pilha inteira. O frontend é servido por nginx, que também
+   faz o proxy de `/api` e `/uploads` para o backend — mesma origem, sem CORS em produção.
 5. **Papel de avaliador.** Removido do escopo porque nenhum requisito funcional o utiliza. Se
    voltar, é um valor novo no enum `Papel` e uma entidade de parecer — sem impacto no que já
    estiver pronto.
