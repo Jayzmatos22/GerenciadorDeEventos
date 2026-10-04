@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { criarUsuario, dataHoraParaCampo, entrarNaInterface } from '../apoio/dados'
+import { criarUsuario, dataHoraParaCampo, entrarNaInterface, marcadorUnico } from '../apoio/dados'
 
 /**
  * RN-10: falha na IA nunca bloqueia o fluxo. A pilha do E2E sobe com `IA_HABILITADA=false`,
@@ -11,7 +11,7 @@ test('IA indisponível avisa e o cadastro manual segue até o fim - RN10', async
   request,
 }) => {
   const organizador = await criarUsuario(request, 'ORGANIZADOR')
-  const titulo = `Palestra sem IA ${Date.now().toString(36)}`
+  const titulo = `Palestra sem IA ${marcadorUnico()}`
 
   await entrarNaInterface(page, organizador)
   await page.goto('/organizador/eventos/novo')

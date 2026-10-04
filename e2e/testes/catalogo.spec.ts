@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { criarEvento, criarUsuario } from '../apoio/dados'
+import { criarEvento, criarUsuario, marcadorUnico } from '../apoio/dados'
 
 /**
  * Regressão: a resposta de uma busca antiga não pode repor a lista velha na tela.
@@ -11,7 +11,7 @@ import { criarEvento, criarUsuario } from '../apoio/dados'
  */
 test('resposta antiga não desfaz o filtro já aplicado', async ({ page, request }) => {
   const organizador = await criarUsuario(request, 'ORGANIZADOR')
-  const marcador = Date.now().toString(36)
+  const marcador = marcadorUnico()
   const titulo = `Busca com corrida ${marcador}`
 
   await criarEvento(request, organizador, { titulo })
@@ -44,7 +44,7 @@ test('resposta antiga não desfaz o filtro já aplicado', async ({ page, request
 
 test('o catálogo mostra apenas eventos publicados', async ({ page, request }) => {
   const organizador = await criarUsuario(request, 'ORGANIZADOR')
-  const marcador = Date.now().toString(36)
+  const marcador = marcadorUnico()
 
   await criarEvento(request, organizador, { titulo: `Publicado visível ${marcador}` })
   await criarEvento(request, organizador, {

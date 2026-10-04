@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um push novo no mesmo PR cancela a execução anterior: não adianta terminar de verificar
+# um commit que já foi substituído.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # Os testes de integração usam Testcontainers e precisam de um daemon Docker. O runner
+      # do GitHub já traz um, então não há nada a instalar aqui.
+      - name: Testes
+        run: ./mvnw -B verify
+
+      - name: Guardar relatórios em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7
+
+  frontend:
+    name: Frontend — lint, tipos e build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      # O build já roda o tsc antes do Vite, mas o typecheck separado dá um erro mais direto
+      # quando o que quebrou foi tipo, e não bundle.
+      - run: npm run typecheck
+      - run: npm run build
+
+  e2e:
+    name: E2E — Playwright
+    runs-on: ubuntu-latest
+    # Só vale gastar a pilha inteira depois que as duas partes passam isoladamente.
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Instalar dependências
+        run: |
+          npm ci --prefix frontend
+          npm ci --prefix e2e
+
+      - name: Instalar o Chromium do Playwright
+        run: npx --prefix e2e playwright install --with-deps chromium
+
+      # O Playwright sobe o Postgres pelo docker-compose, o backend e o Vite, e derruba tudo
+      # ao final. A pilha sobe com IA_HABILITADA=false, como manda a configuração do e2e.
+      - name: Testes de ponta a ponta
+        run: npm test --prefix e2e
+
+      - name: Guardar o relatório em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7

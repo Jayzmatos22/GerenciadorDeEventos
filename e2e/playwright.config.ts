@@ -14,7 +14,6 @@ const noCi = Boolean(process.env.CI)
 
 export default defineConfig({
   testDir: './testes',
-  globalSetup: './apoio/subir-banco.ts',
 
   // Os testes semeiam os próprios dados com e-mails únicos, então rodam em paralelo sem
   // colidir. A exceção é a fila de espera, que serializa dentro do próprio arquivo.
@@ -38,9 +37,9 @@ export default defineConfig({
     {
       // IA_HABILITADA=false de propósito: o E2E cobre o caminho de indisponibilidade da RN-10,
       // que é o único lado da IA verificável sem um modelo no ar.
-      command:
-        './mvnw -q -B spring-boot:run -Dspring-boot.run.profiles=dev ' +
-        '-Dspring-boot.run.jvmArguments="-Dserver.port=8080"',
+      // O script sobe o banco antes do backend: o Playwright inicia o webServer antes do
+      // globalSetup, então deixar o banco por conta dele deixava o backend sem PostgreSQL.
+      command: './e2e/apoio/subir-backend.sh',
       cwd: '..',
       url: `${URL_BACKEND}/actuator/health`,
       reuseExistingServer: !noCi,

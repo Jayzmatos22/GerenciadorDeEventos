@@ -12,12 +12,18 @@ export interface UsuarioDeTeste {
 }
 
 /**
- * E-mail único por chamada. É o que permite os testes rodarem em paralelo e repetidas vezes
+ * Sufixo único por chamada. É o que permite os testes rodarem em paralelo e repetidas vezes
  * contra o mesmo banco, sem limpar nada entre execuções.
+ *
+ * O relógio sozinho não basta: dois workers que começam no mesmo milissegundo geram o mesmo
+ * valor, e aí um teste passa a enxergar os eventos do outro na busca.
  */
+export function marcadorUnico(): string {
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+}
+
 function emailUnico(prefixo: string): string {
-  const sufixo = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
-  return `${prefixo}-${sufixo}@e2e.unisa.br`
+  return `${prefixo}-${marcadorUnico()}@e2e.unisa.br`
 }
 
 /** Cria o usuário pela API e já devolve o token: preparar cenário não é o que se testa. */

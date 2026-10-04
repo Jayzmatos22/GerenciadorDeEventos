@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { criarEvento, criarUsuario, entrarNaInterface, inscrever } from '../apoio/dados'
+import { criarEvento, criarUsuario, entrarNaInterface, inscrever, marcadorUnico } from '../apoio/dados'
 
 /**
  * RN-01 e RN-02 do ponto de vista de quem usa o sistema. A disputa concorrente pela última
@@ -14,7 +14,7 @@ test('evento lotado coloca o participante na fila e o cancelamento promove - RN0
   const primeiro = await criarUsuario(request, 'PARTICIPANTE', 'confirmado')
   const segundo = await criarUsuario(request, 'PARTICIPANTE', 'fila')
 
-  const titulo = `Vaga única ${Date.now().toString(36)}`
+  const titulo = `Vaga única ${marcadorUnico()}`
   const eventoId = await criarEvento(request, organizador, { titulo, limiteVagas: 1 })
 
   const inscricaoDoPrimeiro = await inscrever(request, primeiro, eventoId)
@@ -53,7 +53,7 @@ test('o catálogo avisa que a inscrição vai para a fila antes de a pessoa clic
   const organizador = await criarUsuario(request, 'ORGANIZADOR')
   const ocupante = await criarUsuario(request, 'PARTICIPANTE', 'ocupante')
 
-  const titulo = `Lotado no catálogo ${Date.now().toString(36)}`
+  const titulo = `Lotado no catálogo ${marcadorUnico()}`
   const eventoId = await criarEvento(request, organizador, { titulo, limiteVagas: 1 })
   await inscrever(request, ocupante, eventoId)
 

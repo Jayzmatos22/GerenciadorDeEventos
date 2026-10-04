@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { criarUsuario, dataHoraParaCampo, entrarNaInterface } from '../apoio/dados'
+import { criarUsuario, dataHoraParaCampo, entrarNaInterface, marcadorUnico } from '../apoio/dados'
 
 /**
  * O caminho que a seção 11 da especificação nomeia como E2E:
@@ -14,7 +14,7 @@ test('criar evento, inscrever, registrar presença e emitir certificado', async 
 }) => {
   const organizador = await criarUsuario(request, 'ORGANIZADOR')
   const participante = await criarUsuario(request, 'PARTICIPANTE')
-  const titulo = `Oficina ponta a ponta ${Date.now().toString(36)}`
+  const titulo = `Oficina ponta a ponta ${marcadorUnico()}`
 
   // ---------------------------------------------------------------- criar e publicar
   await entrarNaInterface(page, organizador)
@@ -103,7 +103,7 @@ test('a validação de certificado é pública e não exige sessão', async ({ p
 
   const { criarEvento, inscrever } = await import('../apoio/dados')
   const eventoId = await criarEvento(request, organizador, {
-    titulo: `Evento validação ${Date.now().toString(36)}`,
+    titulo: `Evento validação ${marcadorUnico()}`,
     inicioEmHoras: -6,
     fimEmHoras: -2,
   })

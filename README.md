@@ -180,7 +180,9 @@ npm run relatorio # abre o relatório da última execução
 ```
 
 Um comando só: o Playwright sobe o PostgreSQL pelo `docker-compose`, o backend e o Vite, e
-derruba tudo ao terminar. A pilha sobe com `IA_HABILITADA=false` de propósito — sem um modelo
+derruba tudo ao terminar. O banco sobe dentro do próprio script do backend
+(`e2e/apoio/subir-backend.sh`), e não num `globalSetup` — o Playwright inicia o `webServer`
+antes do `globalSetup`, então o backend tentaria conectar num banco que ainda não existe. A pilha sobe com `IA_HABILITADA=false` de propósito — sem um modelo
 no ar, o caminho de indisponibilidade da RN-10 é o único lado da IA verificável.
 
 Os testes semeiam os próprios dados com e-mails únicos, então rodam em paralelo e repetidas
@@ -209,6 +211,20 @@ O sistema fica em `http://localhost:8081`. Decisões que valem conhecer:
 - **O Postgres não publica porta**: só o backend o alcança.
 - `JWT_SECRET` e `DB_PASSWORD` não têm valor padrão — o compose falha na subida se faltarem,
   em vez de subir com algo inseguro.
+
+## Integração contínua
+
+O workflow [`ci.yml`](.github/workflows/ci.yml) roda a cada push na `main` e em todo Pull
+Request, em três etapas:
+
+| Etapa | O que faz |
+|---|---|
+| `backend` | `./mvnw verify` — unitários e integração com Testcontainers |
+| `frontend` | `npm ci`, lint, typecheck e build |
+| `e2e` | Playwright contra a pilha inteira, só depois das duas anteriores passarem |
+
+Isso é o que dá sentido à convenção da seção 14 da especificação, de `main` protegida
+recebendo só via Pull Request: o PR chega com as três etapas verificadas.
 
 ## Documentação
 
