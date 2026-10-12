@@ -108,8 +108,40 @@ A troca é só de perfil — nenhum código muda (seção 8 da especificação):
 | Perfil | Provedor | Quando usa |
 |---|---|---|
 | `dev` | Ollama local | padrão; não gasta crédito, mas exige o Ollama instalado |
-| `openrouter` | OpenRouter | um gateway só para modelos hospedados de vários fornecedores, vários deles gratuitos |
+| `groq` | Groq | **o caminho mais curto para rodar de graça**; cota por conta, chave sem cartão |
+| `openrouter` | OpenRouter | gateway para modelos de vários fornecedores, alguns gratuitos — mas a cota gratuita é compartilhada |
 | `openai` | OpenAI | apresentação |
+
+### Groq: a opção gratuita que não depende de fila alheia
+
+A diferença entre o Groq e os modelos `:free` do OpenRouter não é velocidade, é **a natureza da
+cota**. No OpenRouter, um endpoint `:free` é capacidade compartilhada entre todos os usuários do
+gateway: o `429 Provider returned error` chega na primeira requisição da sua conta, e não há o
+que fazer além de esperar a fila de estranhos andar. No Groq a cota é da sua conta — um `429`
+quer dizer que foi você que passou do limite, e o limite aparece no console.
+
+```properties
+spring.profiles.active=groq
+GROQ_API_KEY=gsk_sua-chave
+```
+
+A chave sai de <https://console.groq.com/keys>, sem cartão. O perfil já vem com rotação de três
+modelos *instruct*, porque no Groq o limite por minuto é **por modelo** — enquanto um espera, o
+próximo atende. Para ver os ids ativos na sua conta:
+
+```bash
+curl -s https://api.groq.com/openai/v1/models -H "Authorization: Bearer $GROQ_API_KEY" \
+  | jq -r '.data[].id'
+```
+
+Se algum dos três tiver saído do catálogo, a rotação simplesmente passa adiante (o `404` conta
+como recusa) — mas vale atualizar `GROQ_MODELOS` no `.env`.
+
+Outra alternativa de cota própria é o **Google AI Studio**, também compatível com a API da
+OpenAI: `base-url` `https://generativelanguage.googleapis.com/v1beta/openai`. Não ganhou perfil
+próprio porque os ids dos modelos Gemini mudam com frequência e as fontes divergem sobre quais
+estão no plano gratuito hoje; para usar, aponte `spring.ai.openai.base-url` e a chave do AI
+Studio e confirme o id em <https://ai.google.dev/gemini-api/docs/openai>.
 
 **OpenRouter** não é um starter novo: a API dele é compatível com a da OpenAI, então usa o
 mesmo `spring-ai-starter-model-openai` que já está no projeto, mudando apenas a `base-url`.

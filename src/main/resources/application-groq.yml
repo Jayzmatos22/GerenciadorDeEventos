@@ -1,0 +1,47 @@
+# Perfil Groq. Mesma ideia do OpenRouter - API compativel com a da OpenAI, entao reusa o
+# starter que ja existe e a troca e so de propriedade (secao 8 da especificacao).
+#
+# A diferenca que importa esta na natureza da cota, nao na velocidade: no OpenRouter os
+# endpoints :free sao capacidade compartilhada entre todos os usuarios do gateway, entao um 429
+# chega mesmo na primeira requisicao da conta e nao ha nada a fazer alem de esperar a fila de
+# estranhos andar. Aqui a cota e da conta (por organizacao, somando todas as chaves): um 429
+# significa que foi voce que passou do limite, e o limite esta no console.
+#
+# Para subir:
+#   1. Crie a chave em https://console.groq.com/keys (sem cartao)
+#   2. No .env:  spring.profiles.active=groq
+#                GROQ_API_KEY=gsk_...
+#   3. ./mvnw spring-boot:run      (ou .\mvnw.cmd spring-boot:run no Windows)
+spring:
+  ai:
+    model:
+      chat: openai
+    openai:
+      # Termina em /v1 porque o SDK oficial da OpenAI apenas concatena /chat/completions ao
+      # que vier daqui - a mesma armadilha que ja custou uma investigacao no perfil openrouter.
+      base-url: ${GROQ_URL:https://api.groq.com/openai/v1}
+      api-key: ${GROQ_API_KEY}
+      chat:
+        options:
+          model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+          temperature: 0.2
+
+app:
+  ia:
+    # Rotacao dentro do proprio provedor: o limite por minuto e por modelo, entao o segundo da
+    # lista atende enquanto o primeiro espera. Todos sao modelos "instruct", nao de raciocinio,
+    # porque a extracao usa saida estruturada e espera JSON e nada mais.
+    #
+    # Aqui a lista TEM padrao, ao contrario do perfil openrouter, e o motivo e a rotacao:
+    # desde que ela trata 404 como "proximo", um id que saiu do catalogo custa milissegundos
+    # em vez de derrubar a feature. Era o risco que impedia fixar slug no yml.
+    #
+    # A lista de ids ativos de uma conta sai em GET /openai/v1/models - ver o README.
+    modelos: ${GROQ_MODELOS:llama-3.3-70b-versatile,openai/gpt-oss-120b,llama-3.1-8b-instant}
+
+  jwt:
+    segredo: ${JWT_SECRET:desenvolvimento-local-segredo-hs256-com-no-minimo-32-bytes}
+
+logging:
+  level:
+    br.unisa.eventos.ia: DEBUG

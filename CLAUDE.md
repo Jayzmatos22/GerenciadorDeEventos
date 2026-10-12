@@ -71,7 +71,8 @@ padrão:
   conta. "Provider returned error" significa que o gateway esta repassando o erro de quem
   hospeda o modelo, nao que voce estourou limite. Por isso `app.ia.modelos` e uma lista
   percorrida em rotacao, e nao um modelo so. O corpo da resposta de erro, que vai para o log em
-  WARN, tem `metadata.provider_name` e `metadata.raw`; a mensagem da excecao nao tem.
+  WARN, tem `metadata.provider_name` e `metadata.raw`; a mensagem da excecao nao tem. Quando o
+  que se quer e so rodar de graca, o perfil `groq` evita o problema na raiz: cota por conta.
 - **Resposta antiga pode chegar depois da nova.** As buscas do frontend cancelam o pedido
   anterior com `AbortController`; sem isso a lista velha reaparece e desfaz o filtro.
 
