@@ -9,7 +9,7 @@ de mudar comportamento** — ela é a fonte de verdade das regras de negócio.
 ```bash
 # Backend (precisa do Postgres: docker compose up -d)
 ./mvnw verify                                        # 98 testes, Testcontainers exige Docker
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./mvnw spring-boot:run                               # perfil dev vem do pom
 
 # Frontend
 npm run lint --prefix frontend       # ESLint type-aware
@@ -69,12 +69,13 @@ padrão:
 
 Os três que aparecem sempre, e o que significam:
 
-- **`app.jwt.segredo` vazio na subida** — faltou o perfil `dev` ou a variável `JWT_SECRET`. O
+- **`app.jwt.segredo` vazio na subida** — rodou sem o perfil `dev`. O `spring-boot:run` já o
+  ativa pelo `pom.xml`; pela IDE, defina `SPRING_PROFILES_ACTIVE=dev`. O
   `SegredoJwtFailureAnalyzer` explica na saída. Não crie um segredo padrão em
   `application.yml`: ele acompanharia a aplicação até produção.
-- **`Unknown lifecycle phase ".run.profiles=dev"`** — PowerShell quebrando o argumento no `=`.
-  Use `$env:SPRING_PROFILES_ACTIVE = "dev"` antes do `.\mvnw.cmd spring-boot:run`, ou ponha o
-  `-D...` entre aspas.
+- **PowerShell quebra `-Dchave=valor` no sinal de igual** antes de o Maven ver, e exige o
+  prefixo `.\` no executável. É por isso que o perfil do `spring-boot:run` vive no `pom.xml`
+  e não numa flag.
 - **`'vite' não é reconhecido`** — falta `npm install` em `frontend/`.
 - **`Connection to localhost:5432 refused`** — falta `docker compose up -d`.
 
