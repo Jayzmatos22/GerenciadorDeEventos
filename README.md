@@ -77,6 +77,18 @@ mvnw spring-boot:run -Dspring-boot.run.profiles=dev       # Windows
 
 Rodando pela IDE, defina `SPRING_PROFILES_ACTIVE=dev` na configuração de execução.
 
+**`Unknown lifecycle phase ".run.profiles=dev"` no PowerShell.** O PowerShell quebra o
+argumento no `=` antes de entregá-lo ao Maven. Use a variável de ambiente, que não tem esse
+problema:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE = "dev"
+.\mvnw.cmd spring-boot:run
+```
+
+Ou mantenha o `-D` entre aspas: `.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=dev'`.
+No `cmd` tradicional não é preciso aspas nem o prefixo `.\`.
+
 **`'vite' não é reconhecido como um comando`** (ou `vite: command not found`). As dependências
 do frontend não estão instaladas na sua máquina — `node_modules/` não vai para o repositório.
 Rode `npm install` dentro de `frontend/` uma vez.
