@@ -4,6 +4,7 @@ import br.unisa.eventos.config.AppProperties;
 import br.unisa.eventos.shared.exception.IaIndisponivelException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.openai.core.http.Headers;
+import com.openai.errors.NotFoundException;
 import com.openai.errors.OpenAIServiceException;
 import com.openai.errors.RateLimitException;
 import com.openai.errors.UnauthorizedException;
@@ -131,6 +132,32 @@ class ChamadaDeModeloTest {
     }
 
     @Test
+    @DisplayName("404 tira o modelo da rotacao: a segunda chamada nao tenta de novo")
+    void deveDeixarDeTentarModeloInexistente() {
+        // O caso real: llama-3.3-70b-versatile existe no catalogo do Groq mas nao na conta,
+        // e sem memoria a rotacao pagaria o 404 em toda extracao.
+        var chamada = comModelos(List.of("inexistente", "bom"));
+
+        String primeira = chamada.executar("A extracao por IA", prompt -> {
+            if (modelosPedidos.getLast().equals("inexistente")) {
+                throw modeloNaoEncontrado();
+            }
+            return "extraiu";
+        });
+
+        assertThat(primeira).isEqualTo("extraiu");
+        assertThat(modelosPedidos).containsExactly("inexistente", "bom");
+
+        modelosPedidos.clear();
+        String segunda = chamada.executar("A extracao por IA", prompt -> "extraiu");
+
+        assertThat(segunda).isEqualTo("extraiu");
+        assertThat(modelosPedidos)
+                .as("o modelo que a conta nao serve nao volta para a rotacao")
+                .containsExactly("bom");
+    }
+
+    @Test
     @DisplayName("sem lista configurada faz uma tentativa, sem sobrescrever o modelo do perfil")
     void deveRespeitarOPerfilQuandoNaoHaLista() {
         var chamada = comModelos(List.of());
@@ -174,6 +201,17 @@ class ChamadaDeModeloTest {
                 .error(corpoDeErro("""
                         {"message":"Provider returned error","code":429,
                          "metadata":{"provider_name":"Chutes","raw":"upstream recusou"}}
+                        """))
+                .build();
+    }
+
+    /** 404 como o Groq devolve para um modelo fora do catalogo da conta. */
+    private OpenAIServiceException modeloNaoEncontrado() {
+        return NotFoundException.builder()
+                .headers(Headers.builder().build())
+                .error(corpoDeErro("""
+                        {"code":"model_not_found","type":"invalid_request_error",
+                         "message":"The model `inexistente` does not exist or you do not have access to it."}
                         """))
                 .build();
     }

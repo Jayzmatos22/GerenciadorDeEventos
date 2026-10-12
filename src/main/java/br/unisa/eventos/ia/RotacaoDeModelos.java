@@ -3,6 +3,8 @@ package br.unisa.eventos.ia;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -27,6 +29,7 @@ class RotacaoDeModelos {
 
     private final List<String> modelos;
     private final AtomicInteger proximoInicio = new AtomicInteger();
+    private final Set<String> indisponiveis = ConcurrentHashMap.newKeySet();
 
     RotacaoDeModelos(List<String> configurados) {
         // O valor chega de variavel de ambiente separada por virgula, entao espaco em volta e
@@ -47,14 +50,35 @@ class RotacaoDeModelos {
         if (modelos.isEmpty()) {
             return List.of();
         }
+
+        List<String> candidatos = modelos.stream()
+                .filter(modelo -> !indisponiveis.contains(modelo))
+                .toList();
+        // Se tudo foi marcado, a marca e que esta errada - nao a lista. Voltar a tentar todos e
+        // preferivel a deixar a feature desligada ate alguem reiniciar a aplicacao.
+        if (candidatos.isEmpty()) {
+            indisponiveis.clear();
+            candidatos = modelos;
+        }
+
         // floorMod e nao %: o getAndIncrement estoura para negativo depois de 2^31 chamadas, e
         // o resto de um negativo em Java e negativo.
-        int inicio = Math.floorMod(proximoInicio.getAndIncrement(), modelos.size());
+        int inicio = Math.floorMod(proximoInicio.getAndIncrement(), candidatos.size());
 
-        List<String> ordem = new ArrayList<>(modelos.size());
-        ordem.addAll(modelos.subList(inicio, modelos.size()));
-        ordem.addAll(modelos.subList(0, inicio));
+        List<String> ordem = new ArrayList<>(candidatos.size());
+        ordem.addAll(candidatos.subList(inicio, candidatos.size()));
+        ordem.addAll(candidatos.subList(0, inicio));
         return List.copyOf(ordem);
+    }
+
+    /**
+     * Tira o modelo da rotacao pelo resto da vida do processo. So para falha permanente - ver
+     * {@link DiagnosticoFalhaIa#modeloInexistente}.
+     */
+    void marcarIndisponivel(String modelo) {
+        if (modelo != null && !modelo.isBlank()) {
+            indisponiveis.add(modelo.trim());
+        }
     }
 
     int quantidade() {

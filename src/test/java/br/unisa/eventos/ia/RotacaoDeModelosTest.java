@@ -53,6 +53,43 @@ class RotacaoDeModelosTest {
     }
 
     @Test
+    @DisplayName("modelo marcado como indisponivel sai da rotacao")
+    void deveTirarDaRotacaoOModeloIndisponivel() {
+        var rotacao = new RotacaoDeModelos(List.of("inexistente", "bom", "outro"));
+
+        rotacao.marcarIndisponivel("inexistente");
+
+        assertThat(rotacao.ordemDaVez())
+                .as("o 404 nao pode custar uma ida e volta em cada chamada")
+                .containsExactlyInAnyOrder("bom", "outro")
+                .doesNotContain("inexistente");
+        assertThat(rotacao.ordemDaVez()).doesNotContain("inexistente");
+    }
+
+    @Test
+    @DisplayName("todos marcados: a marca e que esta errada, e a rotacao volta inteira")
+    void deveSeRecuperarSeTudoForMarcado() {
+        var rotacao = new RotacaoDeModelos(List.of("a", "b"));
+
+        rotacao.marcarIndisponivel("a");
+        rotacao.marcarIndisponivel("b");
+
+        // Preferivel tentar todos de novo a deixar a feature desligada ate alguem reiniciar.
+        assertThat(rotacao.ordemDaVez()).containsExactlyInAnyOrder("a", "b");
+    }
+
+    @Test
+    @DisplayName("marcar modelo nulo ou em branco nao mexe na rotacao")
+    void deveIgnorarMarcaInvalida() {
+        var rotacao = new RotacaoDeModelos(List.of("a", "b"));
+
+        rotacao.marcarIndisponivel(null);
+        rotacao.marcarIndisponivel("   ");
+
+        assertThat(rotacao.ordemDaVez()).containsExactlyInAnyOrder("a", "b");
+    }
+
+    @Test
     @DisplayName("todo modelo recebe a vez ao longo de varias chamadas")
     void deveDistribuirAPrimeiraTentativa() {
         var rotacao = new RotacaoDeModelos(List.of("a", "b", "c", "d"));

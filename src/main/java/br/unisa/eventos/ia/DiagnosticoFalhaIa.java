@@ -49,6 +49,23 @@ final class DiagnosticoFalhaIa {
         return true;
     }
 
+    /**
+     * Se o modelo nao existe para esta conta - caso em que nao vale tentar de novo nunca.
+     *
+     * <p>// DECISAO: 404 e tratado como permanente; todo o resto como transitorio.
+     *
+     * <p>Um 429 muda de minuto para minuto e um 5xx de requisicao para requisicao, mas um
+     * modelo que a conta nao pode servir vai responder 404 em toda chamada. Sem distinguir os
+     * dois, uma lista com um id fora do catalogo paga uma ida e volta inutil em cada extracao.
+     *
+     * <p>A marca vale so enquanto a aplicacao esta no ar, de proposito: nao se persiste nada,
+     * entao reiniciar testa de novo. Modelo volta ao catalogo, e conta muda de plano.
+     */
+    static boolean modeloInexistente(Throwable causa) {
+        return causa instanceof OpenAIServiceException erroDoServico
+                && erroDoServico.statusCode() == 404;
+    }
+
     static String descrever(Throwable causa) {
         if (causa == null) {
             return "causa nao informada";

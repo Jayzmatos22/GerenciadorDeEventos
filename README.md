@@ -134,8 +134,21 @@ curl -s https://api.groq.com/openai/v1/models -H "Authorization: Bearer $GROQ_AP
   | jq -r '.data[].id'
 ```
 
-Se algum dos três tiver saído do catálogo, a rotação simplesmente passa adiante (o `404` conta
-como recusa) — mas vale atualizar `GROQ_MODELOS` no `.env`.
+Se algum dos três não estiver disponível para a sua conta, a rotação passa adiante e **tira o
+modelo da lista até o próximo restart** — o `404` é permanente para a conta, ao contrário de um
+`429`, então repeti-lo em cada extração seria uma ida e volta jogada fora. No log:
+
+```
+llama-3.3-70b-versatile nao esta disponivel para esta conta e sai da rotacao: HTTP 404, corpo: {code=model_not_found, ...}
+A extracao por IA respondeu com openai/gpt-oss-120b depois de 1 recusa(s): [...]
+```
+
+A marca não é persistida de propósito: reiniciar testa de novo, porque modelo volta ao catálogo
+e conta muda de plano. Para evitar até esse primeiro 404, fixe só o que funciona no `.env`:
+
+```properties
+GROQ_MODELOS=openai/gpt-oss-120b,llama-3.1-8b-instant
+```
 
 Outra alternativa de cota própria é o **Google AI Studio**, também compatível com a API da
 OpenAI: `base-url` `https://generativelanguage.googleapis.com/v1beta/openai`. Não ganhou perfil

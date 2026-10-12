@@ -105,6 +105,14 @@ class ChamadaDeModelo {
                 recusas.add("%s -> %s".formatted(descrever(modelo),
                         DiagnosticoFalhaIa.descrever(causa)));
 
+                if (DiagnosticoFalhaIa.modeloInexistente(causa)) {
+                    // Nao e recusa do momento: a conta nao serve este modelo, e insistir
+                    // custaria uma ida e volta inutil em cada extracao daqui para frente.
+                    rotacao.marcarIndisponivel(modelo);
+                    log.warn("{} nao esta disponivel para esta conta e sai da rotacao: {}",
+                            descrever(modelo), DiagnosticoFalhaIa.descrever(causa));
+                }
+
                 if (!DiagnosticoFalhaIa.permiteOutroModelo(causa)) {
                     log.warn("{} falhou por problema da conta, sem tentar outro modelo: {}",
                             tarefa, recusas, causa);
