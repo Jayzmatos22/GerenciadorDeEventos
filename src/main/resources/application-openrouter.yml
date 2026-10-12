@@ -20,8 +20,13 @@ spring:
       api-key: ${OPENROUTER_API_KEY}
       chat:
         options:
-          # Modelos de peso aberto, as mesmas familias que rodariam no Ollama, mas hospedados.
-          # O sufixo :free existe em varios e nao consome credito.
+          # No OpenRouter o sufixo :free e uma ENTRADA SEPARADA do modelo pago de mesmo nome:
+          # ".../llama-3.3-70b-instruct" cobra, ".../llama-3.3-70b-instruct:free" nao. Olhar a
+          # pagina do slug sem o sufixo mostra preco e engana.
+          #
+          # O catalogo de variantes :free muda com o tempo. Se a chamada falhar, o motivo real
+          # (401 chave invalida, 402 sem credito, 404 modelo inexistente) sai no log do backend
+          # em WARN; o cliente ve sempre o mesmo 503 IA_INDISPONIVEL, por desenho da RN-10.
           model: ${OPENROUTER_MODEL:meta-llama/llama-3.3-70b-instruct:free}
           temperature: 0.2
 

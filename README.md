@@ -119,8 +119,14 @@ $env:OPENROUTER_API_KEY = "sk-or-v1-..."
 .\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=openrouter'
 ```
 
-O modelo padrão é `meta-llama/llama-3.3-70b-instruct:free` — mesma família que rodaria no
-Ollama, só que hospedada. Troque por `OPENROUTER_MODEL`.
+O modelo padrão é `meta-llama/llama-3.3-70b-instruct:free`. **O sufixo `:free` é uma entrada
+separada** do modelo pago de mesmo nome — abrir a página do slug sem o sufixo mostra preço e
+engana. O catálogo de variantes gratuitas muda, então confira a lista antes e troque por
+`OPENROUTER_MODEL` se precisar.
+
+Quando a chamada falha, o cliente recebe sempre o mesmo `503 IA_INDISPONIVEL` (é o desenho da
+RN-10), mas **o motivo real aparece no log do backend** em `WARN`: `401` é chave inválida,
+`402` é falta de crédito, `404` é modelo que não existe.
 
 Para a apresentação com OpenAI, o perfil é `openai`.
 
