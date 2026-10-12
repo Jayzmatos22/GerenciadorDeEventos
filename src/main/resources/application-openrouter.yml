@@ -24,14 +24,21 @@ spring:
       api-key: ${OPENROUTER_API_KEY}
       chat:
         options:
-          # No OpenRouter o sufixo :free e uma ENTRADA SEPARADA do modelo pago de mesmo nome:
-          # ".../llama-3.3-70b-instruct" cobra, ".../llama-3.3-70b-instruct:free" nao. Olhar a
-          # pagina do slug sem o sufixo mostra preco e engana.
+          # O padrao aponta para um modelo PAGO, de proposito.
           #
-          # O catalogo de variantes :free muda com o tempo. Se a chamada falhar, o motivo real
-          # (401 chave invalida, 402 sem credito, 404 modelo inexistente) sai no log do backend
-          # em WARN; o cliente ve sempre o mesmo 503 IA_INDISPONIVEL, por desenho da RN-10.
-          model: ${OPENROUTER_MODEL:meta-llama/llama-3.3-70b-instruct:free}
+          # O OpenRouter tem variantes gratuitas, com sufixo :free, mas elas entram e saem do
+          # catalogo: a deste mesmo modelo foi descontinuada e passou a responder 404 dizendo
+          # "use the paid version". Fixar um slug gratuito aqui significa entregar um projeto
+          # que quebra sozinho quando a lista muda, e com um erro que parece defeito de
+          # configuracao.
+          #
+          # Para usar uma variante gratuita, escolha uma que exista hoje no catalogo e defina
+          # OPENROUTER_MODEL no .env. O custo deste padrao e irrisorio para o uso do projeto:
+          # uma extracao gasta cerca de 500 tokens de entrada e 150 de saida.
+          #
+          # Quando a chamada falha, o motivo real (401 chave, 402 credito, 404 modelo) sai no
+          # log em WARN; o cliente ve sempre 503 IA_INDISPONIVEL, por desenho da RN-10.
+          model: ${OPENROUTER_MODEL:meta-llama/llama-3.3-70b-instruct}
           temperature: 0.2
 
 app:

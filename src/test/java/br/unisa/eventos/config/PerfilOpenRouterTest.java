@@ -11,25 +11,33 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * O slug do modelo no OpenRouter termina em {@code :free}, e o separador de valor padrao do
- * Spring tambem e dois-pontos. Num placeholder como
- * {@code ${OPENROUTER_MODEL:meta-llama/llama-3.3-70b-instruct:free}} e facil supor que o
- * sufixo se perca. Este teste fixa a leitura correta: o padrao e tudo que vem depois do
- * primeiro dois-pontos.
+ * Duas armadilhas do perfil {@code openrouter} ja custaram uma investigacao cada, e as duas
+ * aparecem no cliente como o mesmo 503 IA_INDISPONIVEL que uma chave ausente daria - entao
+ * quem configura culpa a chave.
  *
- * <p>Errar aqui daria um 503 IA_INDISPONIVEL identico ao de chave ausente, e quem estivesse
- * configurando culparia a chave.
+ * <ul>
+ *   <li>A base-url precisa terminar em {@code /v1}: o Spring AI 2.x so concatena
+ *       {@code /chat/completions} ao que vier dela.</li>
+ *   <li>Os slugs do OpenRouter podem levar sufixo depois de dois-pontos ({@code :free}), que
+ *       e tambem o separador de valor padrao do placeholder do Spring. O padrao e tudo que
+ *       vem depois do primeiro dois-pontos, entao o sufixo sobrevive.</li>
+ * </ul>
  */
 @DisplayName("Perfil openrouter - resolucao das propriedades")
 class PerfilOpenRouterTest {
 
     @Test
-    @DisplayName("o sufixo :free do modelo sobrevive ao placeholder")
-    void devePreservarOSufixoDoModelo() throws IOException {
+    @DisplayName("o modelo resolve para um valor utilizavel, sem placeholder por resolver")
+    void deveResolverOModelo() throws IOException {
         var ambiente = ambienteComPerfilOpenRouter();
 
+        // De proposito nao se fixa o slug exato: ele e dado que muda, nao invariante. Pinar o
+        // valor so travaria a suposicao de quem escreveu - foi o que aconteceu com a base-url,
+        // cujo teste passava justamente com a URL errada.
         assertThat(ambiente.getProperty("spring.ai.openai.chat.options.model"))
-                .isEqualTo("meta-llama/llama-3.3-70b-instruct:free");
+                .isNotBlank()
+                .doesNotContain("${")
+                .contains("/");
     }
 
     @Test
