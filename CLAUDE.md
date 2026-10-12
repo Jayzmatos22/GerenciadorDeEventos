@@ -65,6 +65,16 @@ padrão:
 - **Resposta antiga pode chegar depois da nova.** As buscas do frontend cancelam o pedido
   anterior com `AbortController`; sem isso a lista velha reaparece e desfaz o filtro.
 
+## Erros de primeira execução
+
+Os três que aparecem sempre, e o que significam:
+
+- **`app.jwt.segredo` vazio na subida** — faltou o perfil `dev` ou a variável `JWT_SECRET`. O
+  `SegredoJwtFailureAnalyzer` explica na saída. Não crie um segredo padrão em
+  `application.yml`: ele acompanharia a aplicação até produção.
+- **`'vite' não é reconhecido`** — falta `npm install` em `frontend/`.
+- **`Connection to localhost:5432 refused`** — falta `docker compose up -d`.
+
 ## Ao mexer no frontend
 
 - O contrato da API vive em `frontend/src/types/api.ts` e espelha os DTOs do backend. **Mudou

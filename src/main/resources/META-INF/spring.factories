@@ -1,0 +1,3 @@
+# Explica na subida, em vez de deixar a causa enterrada no stack trace.
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+br.unisa.eventos.config.SegredoJwtFailureAnalyzer

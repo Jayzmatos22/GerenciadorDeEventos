@@ -63,6 +63,27 @@ A API sobe em `http://localhost:8080`:
   documentação fica desligada, porque descreve a superfície inteira da API)
 - Health: `http://localhost:8080/actuator/health`
 
+### Problemas comuns ao subir pela primeira vez
+
+**`APPLICATION FAILED TO START` falando de `app.jwt.segredo`.** A aplicação subiu sem o perfil
+`dev` e sem `JWT_SECRET`. Não há segredo padrão fora do `dev` de propósito: um valor que
+funcionasse sozinho acompanharia a aplicação até produção. Suba com o perfil, ou defina a
+variável:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev     # Linux e macOS
+mvnw spring-boot:run -Dspring-boot.run.profiles=dev       # Windows
+```
+
+Rodando pela IDE, defina `SPRING_PROFILES_ACTIVE=dev` na configuração de execução.
+
+**`'vite' não é reconhecido como um comando`** (ou `vite: command not found`). As dependências
+do frontend não estão instaladas na sua máquina — `node_modules/` não vai para o repositório.
+Rode `npm install` dentro de `frontend/` uma vez.
+
+**`Connection to localhost:5432 refused`.** O PostgreSQL não está no ar. Com o Docker Desktop
+aberto, rode `docker compose up -d` na raiz do projeto.
+
 ### Variáveis de ambiente
 
 Estão documentadas em `.env.example`. As obrigatórias são `JWT_SECRET`, `DB_URL`, `DB_USER` e

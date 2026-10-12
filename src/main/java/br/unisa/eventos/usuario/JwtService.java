@@ -36,9 +36,9 @@ public class JwtService {
     public JwtService(AppProperties propriedades) {
         String segredo = propriedades.jwt().segredo();
         if (!StringUtils.hasText(segredo) || segredo.getBytes(StandardCharsets.UTF_8).length < 32) {
-            throw new IllegalStateException(
-                    "app.jwt.segredo ausente ou curto: HS256 exige no minimo 32 bytes. "
-                            + "Defina a variavel de ambiente JWT_SECRET.");
+            throw new SegredoJwtInvalidoException(
+                    "A assinatura dos tokens precisa de um segredo de no minimo 32 bytes, "
+                            + "e app.jwt.segredo chegou vazio ou curto demais.");
         }
         this.chave = Keys.hmacShaKeyFor(segredo.getBytes(StandardCharsets.UTF_8));
         this.expiracao = Duration.ofHours(propriedades.jwt().expiracaoHoras());
