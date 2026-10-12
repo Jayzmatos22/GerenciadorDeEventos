@@ -80,7 +80,11 @@ app:
     tolerancia-horas: 24
   ia:
     habilitada: ${IA_HABILITADA:true}
+    # Orcamento do pedido inteiro, nao de cada tentativa da rotacao.
     timeout-segundos: 20
+    # Vazia: vale o modelo que o perfil configurou no spring.ai. Com mais de um, a chamada
+    # percorre a lista em rotacao ate um responder - ver ChamadaDeModelo.
+    modelos: ${IA_MODELOS:}
   storage:
     diretorio: ${UPLOAD_DIR:uploads}
   cors:

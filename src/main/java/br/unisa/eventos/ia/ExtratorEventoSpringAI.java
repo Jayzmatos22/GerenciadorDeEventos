@@ -5,28 +5,18 @@ import br.unisa.eventos.ia.dto.EventoExtraidoDTO;
 import br.unisa.eventos.shared.exception.IaIndisponivelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Extracao de campos de evento a partir de texto livre, via Spring AI (RF-03).
  *
- * <p>O {@code ChatClient.Builder} chega por {@link ObjectProvider} em vez de injecao direta:
- * no perfil de teste, e sempre que nenhum modelo esta configurado, esse bean nao existe, e a
- * ausencia dele tem que virar IA_INDISPONIVEL em tempo de chamada, nao uma falha na subida do
- * contexto (RN-10).
+ * <p>Quem chama o modelo, cuida do orcamento de tempo e percorre a rotacao de modelos e a
+ * {@link ChamadaDeModelo}; aqui ficam o prompt e a montagem do rascunho.
  */
 @Component
 class ExtratorEventoSpringAI implements ExtratorEvento {
@@ -47,16 +37,11 @@ class ExtratorEventoSpringAI implements ExtratorEvento {
             - descricao e um resumo em uma ou duas frases, tirado do proprio texto.
             """;
 
-    private final ObjectProvider<ChatClient.Builder> construtoresDeChatClient;
-    private final ExecutorService executor;
-    private final Duration timeout;
+    private final ChamadaDeModelo chamada;
     private final boolean habilitada;
 
-    ExtratorEventoSpringAI(ObjectProvider<ChatClient.Builder> construtoresDeChatClient,
-                           ExecutorService executorIa, AppProperties propriedades) {
-        this.construtoresDeChatClient = construtoresDeChatClient;
-        this.executor = executorIa;
-        this.timeout = Duration.ofSeconds(propriedades.ia().timeoutSegundos());
+    ExtratorEventoSpringAI(ChamadaDeModelo chamada, AppProperties propriedades) {
+        this.chamada = chamada;
         this.habilitada = propriedades.ia().habilitada();
     }
 
@@ -66,39 +51,13 @@ class ExtratorEventoSpringAI implements ExtratorEvento {
             throw new IaIndisponivelException("A extracao por IA esta desligada.");
         }
 
-        ChatClient.Builder construtor = construtoresDeChatClient.getIfAvailable();
-        if (construtor == null) {
-            throw new IaIndisponivelException("Nenhum modelo de IA esta configurado.");
-        }
+        RespostaDoModelo resposta = chamada.executar("A extracao por IA", prompt -> prompt
+                .system(PROMPT_SISTEMA.formatted(LocalDateTime.now().getYear()))
+                .user(texto)
+                .call()
+                .entity(RespostaDoModelo.class));
 
-        RespostaDoModelo resposta = chamarComTimeout(construtor, texto);
         return montarRascunho(resposta);
-    }
-
-    private RespostaDoModelo chamarComTimeout(ChatClient.Builder construtor, String texto) {
-        CompletableFuture<RespostaDoModelo> chamada = CompletableFuture.supplyAsync(
-                () -> construtor.build().prompt()
-                        .system(PROMPT_SISTEMA.formatted(LocalDateTime.now().getYear()))
-                        .user(texto)
-                        .call()
-                        .entity(RespostaDoModelo.class),
-                executor);
-
-        try {
-            return chamada.get(timeout.toSeconds(), TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            chamada.cancel(true);
-            throw new IaIndisponivelException(
-                    "O modelo nao respondeu em %ds.".formatted(timeout.toSeconds()), e);
-        } catch (ExecutionException e) {
-            // Timeout do cliente HTTP, 429, resposta nao parseavel: tudo vira IA_INDISPONIVEL.
-            log.warn("Falha na chamada ao modelo de IA - {}",
-                    DiagnosticoFalhaIa.descrever(e.getCause()), e.getCause());
-            throw new IaIndisponivelException("A extracao por IA falhou.", e.getCause());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IaIndisponivelException("A extracao por IA foi interrompida.", e);
-        }
     }
 
     /**

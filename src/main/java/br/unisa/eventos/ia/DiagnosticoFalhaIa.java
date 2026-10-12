@@ -27,6 +27,28 @@ final class DiagnosticoFalhaIa {
     private DiagnosticoFalhaIa() {
     }
 
+    /**
+     * Se vale a pena tentar o proximo modelo da rotacao depois desta falha.
+     *
+     * <p>// DECISAO: a lista e de status que NAO vale insistir, e o resto segue adiante.
+     *
+     * <p>Um 401 (chave invalida) e um 402 (sem credito) sao da conta, nao do modelo: trocar de
+     * modelo so gastaria o orcamento de tempo para colecionar o mesmo erro. Ja o 429 ("provider
+     * saturado"), o 404 (variante gratuita descontinuada) e os 5xx sao do modelo da vez, e o
+     * seguinte pode muito bem responder.
+     *
+     * <p>Falha que nao vem do servico - JSON que o modelo devolveu fora do formato, timeout do
+     * cliente HTTP - tambem segue adiante: um modelo que escreve o raciocinio antes do JSON
+     * quebra a leitura, e outro da lista pode nao fazer isso.
+     */
+    static boolean permiteOutroModelo(Throwable causa) {
+        if (causa instanceof OpenAIServiceException erroDoServico) {
+            int status = erroDoServico.statusCode();
+            return status != 401 && status != 402 && status != 403;
+        }
+        return true;
+    }
+
     static String descrever(Throwable causa) {
         if (causa == null) {
             return "causa nao informada";

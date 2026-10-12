@@ -130,25 +130,59 @@ E suba normalmente, sem flag nenhuma:
 
 A aplicação lê o `.env` na subida. Sem ele, o perfil é o `dev`.
 
-O modelo padrão é `meta-llama/llama-3.3-70b-instruct`, **pago de propósito**. As variantes
-gratuitas do OpenRouter são entradas separadas, de sufixo `:free`, e entram e saem do catálogo:
-a deste mesmo modelo foi descontinuada e hoje responde `404 This model is unavailable for
-free`. Fixar uma no `application-openrouter.yml` entregaria um projeto que quebra sozinho
-quando a lista muda, com um erro que parece defeito de configuração. O custo do padrão é
-irrisório aqui — uma extração gasta por volta de 500 tokens de entrada e 150 de saída.
+### Rodando de graça: rotação de modelos
 
-Para rodar de graça, pegue um slug que exista **hoje** em
-<https://openrouter.ai/models?max_price=0> (ele aparece sob o título do modelo, no formato
-`fornecedor/modelo:free`) e defina no `.env`:
+Um modelo `:free` sozinho não é utilizável na prática. Esses endpoints são **capacidade
+compartilhada entre todos os usuários do OpenRouter**, então recusam com `429 Provider returned
+error` mesmo na primeira requisição da sua conta — não é a sua cota, é a fila de quem hospeda o
+modelo. A resposta para isso é ter vários: `app.ia.modelos` aceita uma lista, e a chamada
+percorre a rotação até um responder.
+
+Monte a lista a partir do catálogo de **hoje**. No PowerShell:
+
+```powershell
+$ids = (Invoke-RestMethod https://openrouter.ai/api/v1/models).data |
+  Where-Object { $_.id -like '*:free' } | ForEach-Object { $_.id }
+"OPENROUTER_MODELOS=$($ids -join ',')"
+```
+
+No Linux e macOS, com `jq`:
+
+```bash
+curl -s https://openrouter.ai/api/v1/models \
+  | jq -r '"OPENROUTER_MODELOS=" + ([.data[] | select(.id | endswith(":free")) | .id] | join(","))'
+```
+
+Cole a linha impressa no `.env`. **Não precisa separar os modelos de chat dos outros:** um slug
+de *embedding*, de *rerank* ou de áudio recusa a chamada, e a rotação segue para o próximo —
+errar um item da lista custa alguns milissegundos, não a feature.
+
+Prefira modelos **instruct** no começo da lista, se for ordenar. A extração usa saída
+estruturada (`.entity(...)`), que espera JSON e nada mais; um modelo de raciocínio que escreva
+antes da resposta derruba a leitura. Isso também não trava nada — é tratado como recusa e a
+rotação passa adiante — mas gasta uma tentativa.
+
+Para fixar um modelo só (uma apresentação em que você não quer surpresa, por exemplo), use
+`OPENROUTER_MODEL` e deixe `OPENROUTER_MODELOS` vazio:
 
 ```properties
 OPENROUTER_MODEL=fornecedor/modelo:free
 ```
 
-Escolha um modelo **instruct**, não um de raciocínio: a extração usa saída estruturada
-(`.entity(...)`), que espera JSON e nada mais; um modelo que escreva o raciocínio antes da
-resposta derruba a leitura e cai no mesmo `503`. Modelos de *embedding*, *rerank*, áudio ou
-classificação não servem — não são modelos de chat.
+O modelo padrão, se você não definir nenhum dos dois, é `meta-llama/llama-3.3-70b-instruct` —
+**pago de propósito**. As variantes gratuitas entram e saem do catálogo: a desse mesmo modelo
+foi descontinuada e hoje responde `404 This model is unavailable for free`. Fixar uma no
+`application-openrouter.yml` entregaria um projeto que quebra sozinho quando a lista muda, com
+um erro que parece defeito de configuração. O custo do padrão é irrisório aqui — uma extração
+gasta por volta de 500 tokens de entrada e 150 de saída.
+
+#### Orçamento de tempo
+
+`app.ia.timeout-segundos` (20s) é o orçamento do **pedido inteiro**, não de cada tentativa:
+quem espera é o navegador do organizador, e o que ele aguenta não muda por existirem oito
+modelos na lista. Recusa de provedor saturado volta em menos de um segundo, então a rotação
+cabe de sobra; já um modelo que aceitou e está gerando recebe todo o tempo restante, porque
+interromper um que está funcionando para tentar outro seria trocar resposta por tentativa.
 
 Quando a chamada falha, o cliente recebe sempre o mesmo `503 IA_INDISPONIVEL` (é o desenho da
 RN-10), mas **o motivo real aparece no log do backend** em `WARN`, com o status HTTP e o corpo

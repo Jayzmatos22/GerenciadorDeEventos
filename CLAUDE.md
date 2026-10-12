@@ -66,6 +66,12 @@ padrão:
   OpenAI, cujo padrão é `https://api.openai.com/v1`; ele só concatena `/chat/completions`. Uma
   base-url sem `/v1` devolve 404, que no log parece modelo inexistente e manda a investigação
   para o lado errado.
+- **Endpoint `:free` do OpenRouter nao tem cota sua.** E capacidade compartilhada entre todos
+  os usuarios do gateway, e recusa com `429 Provider returned error` na primeira requisicao da
+  conta. "Provider returned error" significa que o gateway esta repassando o erro de quem
+  hospeda o modelo, nao que voce estourou limite. Por isso `app.ia.modelos` e uma lista
+  percorrida em rotacao, e nao um modelo so. O corpo da resposta de erro, que vai para o log em
+  WARN, tem `metadata.provider_name` e `metadata.raw`; a mensagem da excecao nao tem.
 - **Resposta antiga pode chegar depois da nova.** As buscas do frontend cancelam o pedido
   anterior com `AbortController`; sem isso a lista velha reaparece e desfaz o filtro.
 

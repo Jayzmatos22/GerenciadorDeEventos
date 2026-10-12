@@ -42,6 +42,16 @@ spring:
           temperature: 0.2
 
 app:
+  ia:
+    # Rotacao de modelos gratuitos. Os endpoints :free do OpenRouter sao capacidade
+    # compartilhada entre todos os usuarios do gateway, entao recusam com 429 ("Provider
+    # returned error") mesmo na primeira requisicao da conta - ter varios na lista e o que
+    # torna o modo gratuito usavel.
+    #
+    # A lista fica no .env e nao aqui de proposito: slug gratuito e dado que muda. Para montar
+    # a sua a partir do catalogo de hoje, ver o README (secao do OpenRouter).
+    modelos: ${OPENROUTER_MODELOS:}
+
   jwt:
     segredo: ${JWT_SECRET:desenvolvimento-local-segredo-hs256-com-no-minimo-32-bytes}
 

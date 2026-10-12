@@ -51,6 +51,10 @@ class PerfilOpenRouterTest {
         assertThat(ambiente.getProperty("spring.ai.openai.base-url"))
                 .isEqualTo("https://openrouter.ai/api/v1")
                 .endsWith("/v1");
+        assertThat(ambiente.getProperty("app.ia.modelos"))
+                .as("a rotacao de gratuitos vem do .env, nao fixada no perfil")
+                .isNotNull()
+                .doesNotContain("${");
         assertThat(ambiente.getProperty("spring.ai.model.chat"))
                 .as("o OpenRouter fala a API da OpenAI, entao usa o mesmo starter")
                 .isEqualTo("openai");

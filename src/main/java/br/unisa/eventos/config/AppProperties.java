@@ -27,7 +27,16 @@ public record AppProperties(
     public record Checkin(long toleranciaHoras) {
     }
 
-    public record Ia(boolean habilitada, long timeoutSegundos) {
+    public record Ia(
+            boolean habilitada,
+            /** Orcamento de tempo do pedido inteiro, nao de cada tentativa da rotacao. */
+            long timeoutSegundos,
+            /**
+             * Modelos tentados em rotacao, do primeiro que responder. Vazia significa "use o
+             * que o Spring AI ja tem configurado", que e o caso dos perfis de um modelo so.
+             */
+            java.util.List<String> modelos
+    ) {
     }
 
     public record Storage(String diretorio) {

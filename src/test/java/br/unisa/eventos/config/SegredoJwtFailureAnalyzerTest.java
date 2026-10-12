@@ -51,7 +51,7 @@ class SegredoJwtFailureAnalyzerTest {
                 "http://localhost:8080",
                 new AppProperties.Avaliacao(3),
                 new AppProperties.Checkin(24),
-                new AppProperties.Ia(false, 20),
+                new AppProperties.Ia(false, 20, java.util.List.of()),
                 new AppProperties.Storage("uploads"),
                 new AppProperties.Cors(java.util.List.of()));
     }
