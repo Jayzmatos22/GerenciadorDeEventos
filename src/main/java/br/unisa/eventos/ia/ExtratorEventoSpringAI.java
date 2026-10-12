@@ -92,7 +92,8 @@ class ExtratorEventoSpringAI implements ExtratorEvento {
                     "O modelo nao respondeu em %ds.".formatted(timeout.toSeconds()), e);
         } catch (ExecutionException e) {
             // Timeout do cliente HTTP, 429, resposta nao parseavel: tudo vira IA_INDISPONIVEL.
-            log.warn("Falha na chamada ao modelo de IA", e.getCause());
+            log.warn("Falha na chamada ao modelo de IA - {}",
+                    DiagnosticoFalhaIa.descrever(e.getCause()), e.getCause());
             throw new IaIndisponivelException("A extracao por IA falhou.", e.getCause());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

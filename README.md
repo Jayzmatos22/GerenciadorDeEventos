@@ -151,8 +151,23 @@ resposta derruba a leitura e cai no mesmo `503`. Modelos de *embedding*, *rerank
 classificação não servem — não são modelos de chat.
 
 Quando a chamada falha, o cliente recebe sempre o mesmo `503 IA_INDISPONIVEL` (é o desenho da
-RN-10), mas **o motivo real aparece no log do backend** em `WARN`: `401` é chave inválida,
-`402` é falta de crédito, `404` é modelo que não existe.
+RN-10), mas **o motivo real aparece no log do backend** em `WARN`, com o status HTTP e o corpo
+da resposta:
+
+| Status | O que é |
+| --- | --- |
+| `401` | chave inválida ou ausente |
+| `402` | sem crédito, ou saldo negativo (acontece até em modelo `:free`) |
+| `404` | modelo que não existe, ou variante `:free` descontinuada |
+| `429` | limite estourado — **o corpo diz de quem** |
+
+O `429` merece atenção porque a mensagem engana: o OpenRouter devolve `429: Provider returned
+error`, que parece cota sua, mas `Provider returned error` significa que **o gateway está
+repassando o erro de quem hospeda o modelo**. Os endpoints `:free` são capacidade compartilhada
+entre todos os usuários do OpenRouter, então dá 429 mesmo na sua primeira requisição. O
+`metadata.provider_name` e o `metadata.raw` no corpo do log apontam o responsável. Para
+comparação, quando o limite é realmente seu a mensagem cita o limite da conta — 20 requisições
+por minuto nos modelos `:free`, e 50 por dia enquanto a conta não tiver comprado 10 créditos.
 
 Para a apresentação com OpenAI, o perfil é `openai`.
 
