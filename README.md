@@ -130,10 +130,25 @@ E suba normalmente, sem flag nenhuma:
 
 A aplicação lê o `.env` na subida. Sem ele, o perfil é o `dev`.
 
-O modelo padrão é `meta-llama/llama-3.3-70b-instruct:free`. **O sufixo `:free` é uma entrada
-separada** do modelo pago de mesmo nome — abrir a página do slug sem o sufixo mostra preço e
-engana. O catálogo de variantes gratuitas muda, então confira a lista antes e troque por
-`OPENROUTER_MODEL` se precisar.
+O modelo padrão é `meta-llama/llama-3.3-70b-instruct`, **pago de propósito**. As variantes
+gratuitas do OpenRouter são entradas separadas, de sufixo `:free`, e entram e saem do catálogo:
+a deste mesmo modelo foi descontinuada e hoje responde `404 This model is unavailable for
+free`. Fixar uma no `application-openrouter.yml` entregaria um projeto que quebra sozinho
+quando a lista muda, com um erro que parece defeito de configuração. O custo do padrão é
+irrisório aqui — uma extração gasta por volta de 500 tokens de entrada e 150 de saída.
+
+Para rodar de graça, pegue um slug que exista **hoje** em
+<https://openrouter.ai/models?max_price=0> (ele aparece sob o título do modelo, no formato
+`fornecedor/modelo:free`) e defina no `.env`:
+
+```properties
+OPENROUTER_MODEL=fornecedor/modelo:free
+```
+
+Escolha um modelo **instruct**, não um de raciocínio: a extração usa saída estruturada
+(`.entity(...)`), que espera JSON e nada mais; um modelo que escreva o raciocínio antes da
+resposta derruba a leitura e cai no mesmo `503`. Modelos de *embedding*, *rerank*, áudio ou
+classificação não servem — não são modelos de chat.
 
 Quando a chamada falha, o cliente recebe sempre o mesmo `503 IA_INDISPONIVEL` (é o desenho da
 RN-10), mas **o motivo real aparece no log do backend** em `WARN`: `401` é chave inválida,
