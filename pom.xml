@@ -166,18 +166,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <!--
-                      spring-boot:run e comando de desenvolvimento: producao roda o jar, nao
-                      este goal. Entao ele ja sobe no perfil dev, e "mvnw spring-boot:run"
-                      funciona sem flag. Isso tambem evita o PowerShell, que quebra
-                      -Dspring-boot.run.profiles=dev no sinal de igual antes de o Maven ver.
-                      Para subir noutro perfil: -Dspring-boot.run.profiles=outro.
-                    -->
-                    <profiles>
-                        <profile>dev</profile>
-                    </profiles>
-                </configuration>
             </plugin>
         </plugins>
     </build>

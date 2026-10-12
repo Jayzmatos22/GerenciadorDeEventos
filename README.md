@@ -114,10 +114,21 @@ A troca é só de perfil — nenhum código muda (seção 8 da especificação):
 **OpenRouter** não é um starter novo: a API dele é compatível com a da OpenAI, então usa o
 mesmo `spring-ai-starter-model-openai` que já está no projeto, mudando apenas a `base-url`.
 
-```powershell
-$env:OPENROUTER_API_KEY = "sk-or-v1-..."
-.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=openrouter'
+Crie um arquivo `.env` na raiz do projeto (ele já está no `.gitignore`):
+
+```properties
+spring.profiles.active=openrouter
+OPENROUTER_API_KEY=sk-or-v1-sua-chave
 ```
+
+E suba normalmente, sem flag nenhuma:
+
+```bash
+./mvnw spring-boot:run        # Linux e macOS
+.\mvnw.cmd spring-boot:run    # Windows
+```
+
+A aplicação lê o `.env` na subida. Sem ele, o perfil é o `dev`.
 
 O modelo padrão é `meta-llama/llama-3.3-70b-instruct:free`. **O sufixo `:free` é uma entrada
 separada** do modelo pago de mesmo nome — abrir a página do slug sem o sufixo mostra preço e

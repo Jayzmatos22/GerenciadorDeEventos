@@ -1,6 +1,17 @@
 spring:
   application:
     name: gerenciador-de-eventos
+  profiles:
+    # Perfil usado quando nenhum outro e ativado, para "mvnw spring-boot:run" funcionar sem
+    # flag. Diferente de fixar no pom: definir spring.profiles.active, no .env ou no ambiente,
+    # sobrescreve isto.
+    default: dev
+  config:
+    # Le um arquivo .env na raiz do projeto, se existir. E o que permite guardar chave e perfil
+    # num arquivo em vez de depender de variavel de ambiente por sessao do terminal - no
+    # PowerShell elas somem ao fechar a janela, e passar -Dchave=valor na linha de comando
+    # esbarra no parser dele. O .env esta no .gitignore e nunca vai para o repositorio.
+    import: optional:file:.env[.properties]
   jackson:
     time-zone: America/Sao_Paulo
     default-property-inclusion: non_null

@@ -9,7 +9,7 @@ de mudar comportamento** — ela é a fonte de verdade das regras de negócio.
 ```bash
 # Backend (precisa do Postgres: docker compose up -d)
 ./mvnw verify                                        # 98 testes, Testcontainers exige Docker
-./mvnw spring-boot:run                               # perfil dev vem do pom
+./mvnw spring-boot:run                               # perfil dev por padrao; .env troca
 
 # Frontend
 npm run lint --prefix frontend       # ESLint type-aware
@@ -74,8 +74,9 @@ Os três que aparecem sempre, e o que significam:
   `SegredoJwtFailureAnalyzer` explica na saída. Não crie um segredo padrão em
   `application.yml`: ele acompanharia a aplicação até produção.
 - **PowerShell quebra `-Dchave=valor` no sinal de igual** antes de o Maven ver, e exige o
-  prefixo `.\` no executável. É por isso que o perfil do `spring-boot:run` vive no `pom.xml`
-  e não numa flag.
+  prefixo `.\` no executável. É por isso que a configuração local vive num arquivo `.env`
+  (lido por `spring.config.import`) e o padrão é `spring.profiles.default`, não uma flag nem
+  o `pom.xml` — fixar no `pom.xml` funcionava, mas impedia trocar de perfil.
 - **`'vite' não é reconhecido`** — falta `npm install` em `frontend/`.
 - **`Connection to localhost:5432 refused`** — falta `docker compose up -d`.
 
