@@ -101,7 +101,28 @@ ollama pull llama3.1
 Sem Ollama no ar, `POST /api/eventos/interpretar` responde `503 IA_INDISPONIVEL` e o fluxo
 manual de cadastro continua funcionando — esse é o comportamento esperado (RN-10).
 
-Para a apresentação, troque só o perfil: `-Dspring-boot.run.profiles=openai`.
+### Provedores de modelo
+
+A troca é só de perfil — nenhum código muda (seção 8 da especificação):
+
+| Perfil | Provedor | Quando usa |
+|---|---|---|
+| `dev` | Ollama local | padrão; não gasta crédito, mas exige o Ollama instalado |
+| `openrouter` | OpenRouter | um gateway só para modelos hospedados de vários fornecedores, vários deles gratuitos |
+| `openai` | OpenAI | apresentação |
+
+**OpenRouter** não é um starter novo: a API dele é compatível com a da OpenAI, então usa o
+mesmo `spring-ai-starter-model-openai` que já está no projeto, mudando apenas a `base-url`.
+
+```powershell
+$env:OPENROUTER_API_KEY = "sk-or-v1-..."
+.\mvnw.cmd spring-boot:run '-Dspring-boot.run.profiles=openrouter'
+```
+
+O modelo padrão é `meta-llama/llama-3.3-70b-instruct:free` — mesma família que rodaria no
+Ollama, só que hospedada. Troque por `OPENROUTER_MODEL`.
+
+Para a apresentação com OpenAI, o perfil é `openai`.
 
 ## Frontend
 

@@ -1,0 +1,34 @@
+# Perfil OpenRouter: um unico gateway para modelos hospedados de varios fornecedores.
+#
+# Nao ha starter proprio nem precisa: a API do OpenRouter e compativel com a da OpenAI, entao
+# o starter que ja existe no projeto serve, bastando trocar a base-url. A troca de provedor
+# continua sendo so de propriedade, como manda a secao 8 da especificacao.
+#
+# Para subir:
+#   $env:OPENROUTER_API_KEY = "sk-or-v1-..."   (PowerShell)
+#   export OPENROUTER_API_KEY="sk-or-v1-..."   (Linux e macOS)
+#   ./mvnw spring-boot:run -Dspring-boot.run.profiles=openrouter
+#
+# Se a chave faltar ou o modelo recusar, a extracao devolve 503 IA_INDISPONIVEL e o cadastro
+# manual segue funcionando (RN-10). Nada quebra por causa disso.
+spring:
+  ai:
+    model:
+      chat: openai
+    openai:
+      base-url: ${OPENROUTER_URL:https://openrouter.ai/api}
+      api-key: ${OPENROUTER_API_KEY}
+      chat:
+        options:
+          # Modelos de peso aberto, as mesmas familias que rodariam no Ollama, mas hospedados.
+          # O sufixo :free existe em varios e nao consome credito.
+          model: ${OPENROUTER_MODEL:meta-llama/llama-3.3-70b-instruct:free}
+          temperature: 0.2
+
+app:
+  jwt:
+    segredo: ${JWT_SECRET:desenvolvimento-local-segredo-hs256-com-no-minimo-32-bytes}
+
+logging:
+  level:
+    br.unisa.eventos.ia: DEBUG
