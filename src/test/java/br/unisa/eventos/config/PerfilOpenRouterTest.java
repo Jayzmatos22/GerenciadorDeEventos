@@ -33,12 +33,16 @@ class PerfilOpenRouterTest {
     }
 
     @Test
-    @DisplayName("a base-url aponta para o OpenRouter, nao para a OpenAI")
+    @DisplayName("a base-url aponta para o OpenRouter e inclui o /v1")
     void deveApontarParaOOpenRouter() throws IOException {
         var ambiente = ambienteComPerfilOpenRouter();
 
+        // O /v1 e obrigatorio: o Spring AI 2.x delega ao SDK oficial da OpenAI, cujo padrao e
+        // https://api.openai.com/v1, e que apenas concatena /chat/completions. Sem ele a
+        // chamada vira .../api/chat/completions e volta 404 - exatamente o que aconteceu.
         assertThat(ambiente.getProperty("spring.ai.openai.base-url"))
-                .isEqualTo("https://openrouter.ai/api");
+                .isEqualTo("https://openrouter.ai/api/v1")
+                .endsWith("/v1");
         assertThat(ambiente.getProperty("spring.ai.model.chat"))
                 .as("o OpenRouter fala a API da OpenAI, entao usa o mesmo starter")
                 .isEqualTo("openai");

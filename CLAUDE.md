@@ -62,6 +62,10 @@ padrão:
   cada bloco que precisa.
 - **O Playwright inicia o `webServer` antes do `globalSetup`.** Por isso o banco sobe dentro de
   `e2e/apoio/subir-backend.sh`, e não num setup global.
+- **A `base-url` do Spring AI precisa incluir o `/v1`.** O 2.x delega ao SDK oficial da
+  OpenAI, cujo padrão é `https://api.openai.com/v1`; ele só concatena `/chat/completions`. Uma
+  base-url sem `/v1` devolve 404, que no log parece modelo inexistente e manda a investigação
+  para o lado errado.
 - **Resposta antiga pode chegar depois da nova.** As buscas do frontend cancelam o pedido
   anterior com `AbortController`; sem isso a lista velha reaparece e desfaz o filtro.
 
