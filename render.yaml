@@ -9,7 +9,10 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
-    region: oregon
+    # Tem que ser a mesma regiao do projeto no Neon: o backend conversa com o banco varias
+    # vezes por requisicao, e as duas regioes sao permanentes depois de criadas.
+    # ohio = us-east-2 no Neon.
+    region: ohio
     healthCheckPath: /actuator/health
     envVars:
       # Perfil de IA. groq porque a cota e da conta, nao capacidade compartilhada.

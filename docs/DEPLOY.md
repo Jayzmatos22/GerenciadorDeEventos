@@ -10,33 +10,52 @@ A ordem importa: o Render precisa da URL do banco, e a Vercel precisa da URL do 
 ## 1. Neon (banco)
 
 1. <https://neon.tech> → novo projeto, **na mesma região do serviço no Render** — para o
-   `render.yaml` como está, isso é **AWS US West (Oregon)**.
+   `render.yaml` como está, isso é **AWS US East (Ohio)** — `us-east-2`.
 
-   Soa errado escolher Oregon morando no Brasil, mas quem conversa com o banco é o backend,
+   Soa errado escolher os EUA morando no Brasil, mas quem conversa com o banco é o backend,
    não o navegador. Uma requisição HTTP vira várias idas e voltas ao Postgres (JPA, Flyway na
    subida, a transação de inscrição com retry otimista); o navegador faz **uma** chamada ao
-   backend. Banco em São Paulo com backend em Oregon põe ~180 ms em cada uma dessas idas,
+   backend. Banco em São Paulo com backend em Ohio põe ~130 ms em cada uma dessas idas,
    multiplicado por consulta. O Render não tem região na América do Sul — são Oregon, Ohio,
    Virginia, Frankfurt e Singapura — então o par fica nos EUA e a distância até você é paga
    uma vez só, no salto do navegador.
 
    **As duas escolhas são permanentes.** Nem o Neon nem o Render deixam mudar a região de um
-   projeto depois de criado; para trocar, é recriar. Se preferir Ohio ou Virginia (mais perto
-   do Brasil que Oregon), mude o `region` no `render.yaml` e crie o Neon na mesma.
-2. Copie a connection string. Ela vem no formato do `psql`:
+   projeto depois de criado; para trocar, é recriar. Se usar outra, mude o `region` no
+   `render.yaml` para a correspondente.
+2. Copie a connection string **direta**, não a com pooler. O painel do Neon tem o seletor
+   *Connection pooling* ligado por padrão, e com ele o host ganha um `-pooler`:
 
    ```
-   postgresql://usuario:senha@ep-algo-123.sa-east-1.aws.neon.tech/neondb?sslmode=require
+   ep-lucky-rice-b4g1np5c-pooler.c-6.us-east-2.aws.neon.tech   ← pooled (desligue)
+   ep-lucky-rice-b4g1np5c.c-6.us-east-2.aws.neon.tech          ← direta (use esta)
    ```
 
-3. **Traduza para JDBC**, que é o que o Spring espera. Três mudanças: prefixo `jdbc:`, usuário e
+   O pooler do Neon é um PgBouncer em modo transação, feito para quem **não** pode manter
+   conexão aberta — função serverless, edge. Esta aplicação é o caso oposto: o HikariCP já
+   mantém o próprio pool, então o pooler não acrescenta nada e tira coisas. Modo transação
+   descarta estado de sessão, e o Flyway usa *advisory lock de sessão* para impedir duas
+   migrations simultâneas; é por isso que a própria documentação do Neon recomenda a conexão
+   direta para migrations.
+
+3. A string vem no formato do `psql`:
+
+   ```
+   postgresql://usuario:senha@ep-algo-123.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+   ```
+
+4. **Traduza para JDBC**, que é o que o Spring espera. Três mudanças: prefixo `jdbc:`, usuário e
    senha saem da URL e viram variáveis próprias.
 
    | Variável | Valor |
    | --- | --- |
-   | `DB_URL` | `jdbc:postgresql://ep-algo-123.sa-east-1.aws.neon.tech/neondb?sslmode=require` |
+   | `DB_URL` | `jdbc:postgresql://ep-algo-123.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require` |
    | `DB_USER` | `usuario` |
    | `DB_PASSWORD` | `senha` |
+
+   **Descarte o `channel_binding=require`** se ele vier na string. É parâmetro do `libpq`; o
+   driver JDBC não o reconhece (o equivalente lá seria `channelBinding`). Não quebra nada —
+   testei, o driver aceita a URL e ignora —, mas é peso morto que confunde quem lê depois.
 
    **Mantenha o `?sslmode=require`.** O Neon só aceita conexão TLS; sem isso o driver tenta em
    texto puro e a conexão é recusada na subida, com erro que parece credencial errada.
