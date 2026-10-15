@@ -114,8 +114,15 @@ suba as fotos no dia.
 
    Sem barra no final. É build-time: mudar depois exige **Redeploy**, não basta salvar.
 
-4. Edite `frontend/vercel.json` e troque as duas ocorrências de
-   `https://TROQUE-PELO-SEU-BACKEND.onrender.com` pela URL real do Render. Commite e dê push.
+   **Não tire o prefixo `VITE_`**, mesmo que a Vercel sugira. O Vite só injeta no bundle as
+   variáveis que começam com ele — é o mecanismo que impede vazar segredo sem querer. Sem o
+   prefixo, `import.meta.env.VITE_API_URL` vira `undefined`, o `BASE` do client vira string
+   vazia e as chamadas voltam a ser relativas, batendo na própria Vercel. O aviso de que o
+   valor fica visível no navegador está certo e é inofensivo aqui: é o endereço de uma API
+   pública, que o navegador precisa conhecer para chamar. Segredo mora no Render.
+
+4. Edite `frontend/vercel.json` e troque as duas ocorrências da URL do backend na
+   `Content-Security-Policy` pela URL real do Render. Commite e dê push.
 
    Isso é obrigatório, não cosmético. O `Content-Security-Policy` tem `connect-src` e
    `img-src`, e com o backend em outro domínio o navegador bloqueia **toda** chamada à API
