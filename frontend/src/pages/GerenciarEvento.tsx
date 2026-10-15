@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ApiError, api } from '../api/client'
+import { ApiError, api, urlDeArquivo } from '../api/client'
 import {
   Alerta,
   Botao,
@@ -384,7 +384,7 @@ function PainelFotos({ eventoId, fotos, onMudou, onMensagem }: PainelFotosProps)
           {fotos.map((foto) => (
             <li key={foto.id} className="space-y-2">
               <img
-                src={foto.url}
+                src={urlDeArquivo(foto.url)}
                 alt="Foto do evento"
                 className="h-36 w-full rounded-xl object-cover ring-1 ring-slate-200"
                 loading="lazy"

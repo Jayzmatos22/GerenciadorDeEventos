@@ -52,9 +52,6 @@ app:
     # a sua a partir do catalogo de hoje, ver o README (secao do OpenRouter).
     modelos: ${OPENROUTER_MODELOS:}
 
-  jwt:
-    segredo: ${JWT_SECRET:desenvolvimento-local-segredo-hs256-com-no-minimo-32-bytes}
-
 logging:
   level:
     br.unisa.eventos.ia: DEBUG

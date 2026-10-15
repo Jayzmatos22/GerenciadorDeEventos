@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ApiError, api } from '../api/client'
+import { ApiError, api, urlDeArquivo } from '../api/client'
 import type { EventoResponse, InscricaoResponse } from '../types/api'
 import type { EstadoDeRota } from '../types/rota'
 import { useAuth } from '../context/auth'
@@ -82,7 +82,7 @@ export default function DetalheEvento() {
           {evento.fotos.map((foto) => (
             <img
               key={foto.id}
-              src={foto.url}
+              src={urlDeArquivo(foto.url)}
               alt={`Foto do evento ${evento.titulo}`}
               className="h-40 w-full rounded-xl object-cover ring-1 ring-slate-200"
               loading="lazy"

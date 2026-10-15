@@ -1,0 +1,45 @@
+# Blueprint da Render: em vez de preencher o formulario do painel, aponte para este arquivo e
+# ele descreve o servico inteiro. Ver docs/DEPLOY.md para o passo a passo.
+#
+# O banco NAO esta aqui de proposito: o Postgres e o Neon, fora da Render, e a connection
+# string entra como variavel (sync: false pede o valor no painel, sem versionar segredo).
+services:
+  - type: web
+    name: eventos-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /actuator/health
+    envVars:
+      # Perfil de IA. groq porque a cota e da conta, nao capacidade compartilhada.
+      - key: SPRING_PROFILES_ACTIVE
+        value: groq
+      - key: TZ
+        value: America/Sao_Paulo
+
+      # --- Segredos: sync:false faz a Render pedir o valor no painel, sem passar pelo git ---
+      # Minimo 32 bytes. Gere com: openssl rand -base64 48
+      - key: JWT_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+
+      # --- Neon: a connection string sai do painel do Neon, ja com sslmode=require ---
+      - key: DB_URL
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+      # --- URLs: as duas apontam para o FRONTEND na Vercel, nao para esta API ---
+      # APP_URL entra no link de validacao impresso no certificado, que e uma rota do
+      # frontend (/certificados/validar/:codigo). Apontar para a API aqui gera um
+      # certificado com link que devolve 404.
+      - key: APP_URL
+        sync: false
+      # Origens aceitas pelo navegador. Sem o dominio da Vercel aqui, toda chamada do
+      # frontend e barrada pelo CORS antes de chegar ao controller.
+      - key: CORS_ORIGENS
+        sync: false

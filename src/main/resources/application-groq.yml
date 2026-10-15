@@ -39,9 +39,6 @@ app:
     # A lista de ids ativos de uma conta sai em GET /openai/v1/models - ver o README.
     modelos: ${GROQ_MODELOS:llama-3.3-70b-versatile,openai/gpt-oss-120b,llama-3.1-8b-instant}
 
-  jwt:
-    segredo: ${JWT_SECRET:desenvolvimento-local-segredo-hs256-com-no-minimo-32-bytes}
-
 logging:
   level:
     br.unisa.eventos.ia: DEBUG

@@ -44,7 +44,9 @@ ENV TZ=America/Sao_Paulo \
     UPLOAD_DIR=/app/uploads \
     JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75"
 
+# Segue a PORT do ambiente, senao o healthcheck interno bate numa porta onde nao ha ninguem
+# quando a plataforma escolhe outra (a Render injeta PORT).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD wget --quiet --spider http://localhost:8080/actuator/health || exit 1
+    CMD wget --quiet --spider "http://localhost:${PORT:-8080}/actuator/health" || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

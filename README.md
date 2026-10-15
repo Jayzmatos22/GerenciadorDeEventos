@@ -360,7 +360,13 @@ vezes contra o mesmo banco sem limpar nada entre execuções.
 
 ## Rodando em produção
 
-A pilha inteira sobe com Docker (seção 13.4 da especificação):
+Dois caminhos. **Hospedado em PaaS gratuito** (Neon + Render + Vercel) está em
+[`docs/DEPLOY.md`](docs/DEPLOY.md) — é o mais curto para pôr no ar com URL pública. Nesse
+arranjo o frontend fica em outro domínio que o backend, então CORS e CSP passam a valer de
+verdade, e o guia trata disso.
+
+**Auto-hospedado**, a pilha inteira sobe com Docker numa origem só (seção 13.4 da
+especificação):
 
 ```bash
 cp .env.example .env    # e preencha JWT_SECRET e DB_PASSWORD

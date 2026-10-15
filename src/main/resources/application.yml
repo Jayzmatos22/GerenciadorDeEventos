@@ -46,7 +46,9 @@ spring:
         pull-model-strategy: never
 
 server:
-  port: 8080
+  # A porta vem do ambiente porque PaaS a escolhe: a Render injeta PORT e roteia so para ela.
+  # Fixar 8080 faz o deploy subir, passar no build e nunca responder - "no open ports detected".
+  port: ${PORT:8080}
   error:
     include-message: never
     include-stacktrace: never

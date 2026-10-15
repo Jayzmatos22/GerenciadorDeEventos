@@ -108,6 +108,21 @@ interface OpcoesRequisicao {
  * Distingue "o pedido foi cancelado porque outro o substituiu" de "a requisição falhou".
  * Sem isso, trocar de filtro depressa pintaria a tela de erro.
  */
+/**
+ * Resolve o caminho de um arquivo servido pelo backend (`/uploads/...`) contra a base da API.
+ *
+ * O backend devolve caminho relativo de propósito: o que está gravado no banco continua
+ * válido se o domínio mudar. Em desenvolvimento o proxy do Vite encaminha `/uploads`, então
+ * o relativo já funciona; com o frontend hospedado separado do backend, `<img src="/uploads/…">`
+ * bateria no domínio do frontend e voltaria 404 — ou, pior, o HTML do index.
+ */
+export function urlDeArquivo(caminho: string): string {
+  if (/^https?:\/\//.test(caminho)) {
+    return caminho
+  }
+  return BASE + caminho
+}
+
 export function foiCancelada(erro: unknown): boolean {
   return erro instanceof DOMException && erro.name === 'AbortError'
 }
