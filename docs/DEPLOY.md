@@ -9,8 +9,20 @@ A ordem importa: o Render precisa da URL do banco, e a Vercel precisa da URL do 
 
 ## 1. Neon (banco)
 
-1. <https://neon.tech> → novo projeto, região **AWS São Paulo** se houver (menos latência até o
-   Render em Oregon não é possível, mas o importante é ficar perto de você).
+1. <https://neon.tech> → novo projeto, **na mesma região do serviço no Render** — para o
+   `render.yaml` como está, isso é **AWS US West (Oregon)**.
+
+   Soa errado escolher Oregon morando no Brasil, mas quem conversa com o banco é o backend,
+   não o navegador. Uma requisição HTTP vira várias idas e voltas ao Postgres (JPA, Flyway na
+   subida, a transação de inscrição com retry otimista); o navegador faz **uma** chamada ao
+   backend. Banco em São Paulo com backend em Oregon põe ~180 ms em cada uma dessas idas,
+   multiplicado por consulta. O Render não tem região na América do Sul — são Oregon, Ohio,
+   Virginia, Frankfurt e Singapura — então o par fica nos EUA e a distância até você é paga
+   uma vez só, no salto do navegador.
+
+   **As duas escolhas são permanentes.** Nem o Neon nem o Render deixam mudar a região de um
+   projeto depois de criado; para trocar, é recriar. Se preferir Ohio ou Virginia (mais perto
+   do Brasil que Oregon), mude o `region` no `render.yaml` e crie o Neon na mesma.
 2. Copie a connection string. Ela vem no formato do `psql`:
 
    ```
