@@ -106,20 +106,23 @@ suba as fotos no dia.
 2. **Root Directory: `frontend`.** Este é o passo que mais se esquece; sem ele a Vercel tenta
    buildar a raiz, não acha `package.json` e falha.
    O resto (`npm run build`, saída em `dist`) já vem do `frontend/vercel.json`.
-3. Em **Environment Variables**:
+3. **Não precisa configurar variável no painel.** A base da API fica em
+   `frontend/.env.production`, versionada, e o Vite a lê durante o `vite build`. Edite o
+   arquivo com a URL do seu Render e dê push.
 
-   | Variável | Valor |
-   | --- | --- |
-   | `VITE_API_URL` | `https://eventos-api-xxxx.onrender.com` |
+   Versionar esse valor é seguro **porque ele não é segredo**: é o endereço de uma API
+   pública, e o bundle precisa carregá-lo para o navegador saber a quem chamar — qualquer um
+   que abra o DevTools vê, esteja ele no painel da Vercel ou no repositório. Segredo de
+   verdade (chave da IA, segredo do JWT, senha do banco) mora só no Render e nunca passa pelo
+   frontend. A vantagem é que o deploy fica reproduzível e o valor mora ao lado do mesmo
+   domínio que já está fixado na CSP do `vercel.json`, em vez de metade no repositório e
+   metade num painel.
 
-   Sem barra no final. É build-time: mudar depois exige **Redeploy**, não basta salvar.
-
-   **Não tire o prefixo `VITE_`**, mesmo que a Vercel sugira. O Vite só injeta no bundle as
-   variáveis que começam com ele — é o mecanismo que impede vazar segredo sem querer. Sem o
-   prefixo, `import.meta.env.VITE_API_URL` vira `undefined`, o `BASE` do client vira string
-   vazia e as chamadas voltam a ser relativas, batendo na própria Vercel. O aviso de que o
-   valor fica visível no navegador está certo e é inofensivo aqui: é o endereço de uma API
-   pública, que o navegador precisa conhecer para chamar. Segredo mora no Render.
+   Se preferir configurar pelo painel mesmo assim, use a chave `VITE_API_URL` — **e não tire
+   o prefixo `VITE_`**, mesmo que a Vercel sugira. O Vite só injeta no bundle as variáveis que
+   começam com ele; sem o prefixo, `import.meta.env.VITE_API_URL` vira `undefined`, o `BASE`
+   do client vira string vazia e as chamadas voltam a ser relativas, batendo na própria
+   Vercel. Variável de ambiente tem precedência sobre o arquivo.
 
 4. Edite `frontend/vercel.json` e troque as duas ocorrências da URL do backend na
    `Content-Security-Policy` pela URL real do Render. Commite e dê push.
