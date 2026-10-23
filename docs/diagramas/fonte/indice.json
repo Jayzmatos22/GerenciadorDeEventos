@@ -1,0 +1,224 @@
+[
+ {
+  "tema": "v1-grafite",
+  "nome": "Grafite",
+  "fundo": "#17181b",
+  "mudo": "#9aa3ae",
+  "itens": [
+   {
+    "arquivo": "A1a-casos-de-uso-participante",
+    "titulo": "A.1a Casos de uso — Visitante e Participante",
+    "largura": 1230,
+    "altura": 800
+   },
+   {
+    "arquivo": "A1b-casos-de-uso-organizador",
+    "titulo": "A.1b Casos de uso — Organizador",
+    "largura": 1340,
+    "altura": 800
+   },
+   {
+    "arquivo": "A2a-classes-nucleo",
+    "titulo": "A.2a Classes — Usuários, eventos e inscrições",
+    "largura": 1320,
+    "altura": 740
+   },
+   {
+    "arquivo": "A2b-classes-participacao-ia",
+    "titulo": "A.2b Classes — Participação e IA",
+    "largura": 1300,
+    "altura": 760
+   },
+   {
+    "arquivo": "A3a-estados-inscricao",
+    "titulo": "A.3a Estados — Inscrição",
+    "largura": 1120,
+    "altura": 690
+   },
+   {
+    "arquivo": "A3b-estados-evento",
+    "titulo": "A.3b Estados — Evento",
+    "largura": 1160,
+    "altura": 540
+   },
+   {
+    "arquivo": "A4-atividades-cadastro-ia",
+    "titulo": "A.4 Atividades — Cadastro de evento assistido por IA",
+    "largura": 1180,
+    "altura": 770
+   },
+   {
+    "arquivo": "A5-sequencia-cadastro-ia",
+    "titulo": "A.5 Sequência — Cadastro de evento via IA",
+    "largura": 1600,
+    "altura": 760
+   },
+   {
+    "arquivo": "A6a-sequencia-emissao-certificado",
+    "titulo": "A.6a Sequência — Emissão do certificado",
+    "largura": 1400,
+    "altura": 760
+   },
+   {
+    "arquivo": "A6b-sequencia-download-certificado",
+    "titulo": "A.6b Sequência — Download do certificado em PDF",
+    "largura": 1400,
+    "altura": 540
+   },
+   {
+    "arquivo": "A7-componentes",
+    "titulo": "A.7 Componentes",
+    "largura": 1440,
+    "altura": 680
+   }
+  ]
+ },
+ {
+  "tema": "v2-azul-noite",
+  "nome": "Azul-noite",
+  "fundo": "#0b1120",
+  "mudo": "#8ea3c2",
+  "itens": [
+   {
+    "arquivo": "A1a-casos-de-uso-participante",
+    "titulo": "A.1a Casos de uso — Visitante e Participante",
+    "largura": 1230,
+    "altura": 800
+   },
+   {
+    "arquivo": "A1b-casos-de-uso-organizador",
+    "titulo": "A.1b Casos de uso — Organizador",
+    "largura": 1340,
+    "altura": 800
+   },
+   {
+    "arquivo": "A2a-classes-nucleo",
+    "titulo": "A.2a Classes — Usuários, eventos e inscrições",
+    "largura": 1320,
+    "altura": 740
+   },
+   {
+    "arquivo": "A2b-classes-participacao-ia",
+    "titulo": "A.2b Classes — Participação e IA",
+    "largura": 1300,
+    "altura": 760
+   },
+   {
+    "arquivo": "A3a-estados-inscricao",
+    "titulo": "A.3a Estados — Inscrição",
+    "largura": 1120,
+    "altura": 690
+   },
+   {
+    "arquivo": "A3b-estados-evento",
+    "titulo": "A.3b Estados — Evento",
+    "largura": 1160,
+    "altura": 540
+   },
+   {
+    "arquivo": "A4-atividades-cadastro-ia",
+    "titulo": "A.4 Atividades — Cadastro de evento assistido por IA",
+    "largura": 1180,
+    "altura": 770
+   },
+   {
+    "arquivo": "A5-sequencia-cadastro-ia",
+    "titulo": "A.5 Sequência — Cadastro de evento via IA",
+    "largura": 1600,
+    "altura": 760
+   },
+   {
+    "arquivo": "A6a-sequencia-emissao-certificado",
+    "titulo": "A.6a Sequência — Emissão do certificado",
+    "largura": 1400,
+    "altura": 760
+   },
+   {
+    "arquivo": "A6b-sequencia-download-certificado",
+    "titulo": "A.6b Sequência — Download do certificado em PDF",
+    "largura": 1400,
+    "altura": 540
+   },
+   {
+    "arquivo": "A7-componentes",
+    "titulo": "A.7 Componentes",
+    "largura": 1440,
+    "altura": 680
+   }
+  ]
+ },
+ {
+  "tema": "v3-contraste",
+  "nome": "Contraste",
+  "fundo": "#0a0a0a",
+  "mudo": "#a3a3a3",
+  "itens": [
+   {
+    "arquivo": "A1a-casos-de-uso-participante",
+    "titulo": "A.1a Casos de uso — Visitante e Participante",
+    "largura": 1230,
+    "altura": 800
+   },
+   {
+    "arquivo": "A1b-casos-de-uso-organizador",
+    "titulo": "A.1b Casos de uso — Organizador",
+    "largura": 1340,
+    "altura": 800
+   },
+   {
+    "arquivo": "A2a-classes-nucleo",
+    "titulo": "A.2a Classes — Usuários, eventos e inscrições",
+    "largura": 1320,
+    "altura": 740
+   },
+   {
+    "arquivo": "A2b-classes-participacao-ia",
+    "titulo": "A.2b Classes — Participação e IA",
+    "largura": 1300,
+    "altura": 760
+   },
+   {
+    "arquivo": "A3a-estados-inscricao",
+    "titulo": "A.3a Estados — Inscrição",
+    "largura": 1120,
+    "altura": 690
+   },
+   {
+    "arquivo": "A3b-estados-evento",
+    "titulo": "A.3b Estados — Evento",
+    "largura": 1160,
+    "altura": 540
+   },
+   {
+    "arquivo": "A4-atividades-cadastro-ia",
+    "titulo": "A.4 Atividades — Cadastro de evento assistido por IA",
+    "largura": 1180,
+    "altura": 770
+   },
+   {
+    "arquivo": "A5-sequencia-cadastro-ia",
+    "titulo": "A.5 Sequência — Cadastro de evento via IA",
+    "largura": 1600,
+    "altura": 760
+   },
+   {
+    "arquivo": "A6a-sequencia-emissao-certificado",
+    "titulo": "A.6a Sequência — Emissão do certificado",
+    "largura": 1400,
+    "altura": 760
+   },
+   {
+    "arquivo": "A6b-sequencia-download-certificado",
+    "titulo": "A.6b Sequência — Download do certificado em PDF",
+    "largura": 1400,
+    "altura": 540
+   },
+   {
+    "arquivo": "A7-componentes",
+    "titulo": "A.7 Componentes",
+    "largura": 1440,
+    "altura": 680
+   }
+  ]
+ }
+]

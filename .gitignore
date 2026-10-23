@@ -30,3 +30,6 @@ playwright-report/
 test-results/
 blob-report/
 .playwright/
+
+# Cache do gerador de diagramas
+docs/diagramas/fonte/__pycache__/
