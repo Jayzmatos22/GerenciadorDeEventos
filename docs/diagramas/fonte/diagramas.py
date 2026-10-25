@@ -360,7 +360,7 @@ def sequencia_cadastro_ia() -> Diagrama:
 
 
 def sequencia_emissao_certificado() -> Diagrama:
-    d = Diagrama("A6a", "A.6a Sequência — Emissão do certificado", 1400, 760)
+    d = Diagrama("A6a", "A.6a Sequência — Emissão do certificado", 1400, 900)
     s = Sequencia(d, [
         ("part", 70, ["Participante"], 40, True),
         ("front", 270, [("Frontend", "b"), ("React", "m")], 150, False),
@@ -368,24 +368,27 @@ def sequencia_emissao_certificado() -> Diagrama:
         ("serv", 800, [("CertificadoService", "b")], 170, False),
         ("crepo", 1050, [("CertificadoRepository", "b")], 180, False),
         ("prepo", 1290, [("PresencaRepository", "b")], 170, False),
-    ], fim=730)
-    s.ativa("front", 112, 698)
-    s.ativa("ctrl", 144, 666)
-    s.ativa("serv", 176, 634)
+    ], fim=870)
+    s.ativa("front", 112, 848)
+    s.ativa("ctrl", 144, 816)
+    s.ativa("serv", 176, 784)
     s.ativa("crepo", 208, 280)
-    s.ativa("crepo", 532, 580)
+    s.ativa("crepo", 682, 730)
     s.ativa("prepo", 318, 366)
     s.ativa("prepo", 468, 516)
+    s.ativa("prepo", 618, 666)
 
     s.msg(1, "part", "front", "emitir certificado", 120)
     s.msg(2, "front", "ctrl", "POST /api/inscricoes/{id}/certificado", 152)
     s.msg(3, "ctrl", "serv", "emitir(inscricaoId, usuarioId)", 184)
     s.msg(4, "serv", "crepo", "buscarPorInscricao(inscricaoId)", 216)
-    s.fragmento("alt", 170, 1385, 236, 600,
+    # RN-05: presenca e fim do evento, pelo horario ou pelo encerramento do organizador.
+    s.fragmento("alt", 170, 1385, 236, 750,
                 [(236, "[certificado já emitido]"),
                  (290, "[ainda não emitido, sem presença]"),
-                 (440, "[ainda não emitido, com presença]")], separadores=[290, 440],
-                gx=284)
+                 (440, "[com presença, evento ainda não terminou]"),
+                 (590, "[com presença, evento já terminou]")],
+                separadores=[290, 440, 590], gx=284)
     s.msg(5, "crepo", "serv", "certificado existente (idempotente)", 272, retorno=True)
     s.msg(6, "serv", "prepo", "existsByInscricaoId(inscricaoId)", 326)
     s.msg(7, "prepo", "serv", "false", 358, retorno=True)
@@ -393,11 +396,15 @@ def sequencia_emissao_certificado() -> Diagrama:
     s.msg(9, "ctrl", "front", "422 PRESENCA_NAO_REGISTRADA", 422, retorno=True)
     s.msg(10, "serv", "prepo", "existsByInscricaoId(inscricaoId)", 476)
     s.msg(11, "prepo", "serv", "true", 508, retorno=True)
-    s.msg(12, "serv", "crepo", "save(new Certificado(inscricao))", 540)
-    s.msg(13, "crepo", "serv", "certificado com código", 572, retorno=True)
-    s.msg(14, "serv", "ctrl", "CertificadoResponse", 626, retorno=True)
-    s.msg(15, "ctrl", "front", "201 Created", 658, retorno=True)
-    s.msg(16, "front", "part", "código e link", 690, retorno=True)
+    s.msg(12, "serv", "ctrl", "RegraDeNegocioException", 540, retorno=True)
+    s.msg(13, "ctrl", "front", "422 EVENTO_NAO_TERMINADO", 572, retorno=True)
+    s.msg(14, "serv", "prepo", "existsByInscricaoId(inscricaoId)", 626)
+    s.msg(15, "prepo", "serv", "true", 658, retorno=True)
+    s.msg(16, "serv", "crepo", "save(new Certificado(inscricao))", 690)
+    s.msg(17, "crepo", "serv", "certificado com código", 722, retorno=True)
+    s.msg(18, "serv", "ctrl", "CertificadoResponse", 776, retorno=True)
+    s.msg(19, "ctrl", "front", "201 Created", 808, retorno=True)
+    s.msg(20, "front", "part", "código e link", 840, retorno=True)
     return d
 
 

@@ -20,6 +20,8 @@ editar. Os `diagramas-*.pdf` na raiz desta pasta são a prévia de cada tema, um
   nenhum fluxo da versão atual o grava.
 - **Certificado:** virou duas sequências. O PDF não é gerado na emissão, e sim no download,
   em outra requisição (`CertificadoService.gerarPdf`).
+  A emissão (A.6a) mostra as duas condições da RN-05: presença registrada e evento terminado,
+  pelo horário de fim ou pelo encerramento antecipado do organizador.
 - **Divididos para ficarem legíveis:** casos de uso, classes e estados ganharam dois diagramas.
 
 ## Regerar
