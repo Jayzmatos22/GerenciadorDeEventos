@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -244,6 +245,27 @@ class InscricaoIntegracaoTest extends AbstractIntegracaoTest {
                         .header(HttpHeaders.AUTHORIZATION, participante.header()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    @DisplayName("/inscricoes/minhas indica a presenca registrada, que libera o certificado - RN05")
+    void deveIndicarPresencaRegistradaNasMinhasInscricoes_RN05() throws Exception {
+        Autenticado organizador = autenticar("org-presenca-minhas@unisa.br", Papel.ORGANIZADOR);
+        Autenticado participante = autenticar("presenca-minhas@unisa.br", Papel.PARTICIPANTE);
+        // Eventos ainda acontecendo: o certificado nao depende do fim do evento, so da presenca.
+        long eventoComCheckIn = criarEventoEmAndamento(organizador, "Com check-in", 5);
+        long eventoSemCheckIn = criarEventoEmAndamento(organizador, "Sem check-in", 5);
+        long presente = inscreverConfirmado(participante, eventoComCheckIn);
+        long ausente = inscreverConfirmado(participante, eventoSemCheckIn);
+        registrarPresenca(organizador, eventoComCheckIn, presente);
+
+        mockMvc.perform(get("/api/inscricoes/minhas")
+                        .header(HttpHeaders.AUTHORIZATION, participante.header()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[?(@.id == %d)].presencaRegistrada", presente)
+                        .value(contains(true)))
+                .andExpect(jsonPath("$.content[?(@.id == %d)].presencaRegistrada", ausente)
+                        .value(contains(false)));
     }
 
     @Test

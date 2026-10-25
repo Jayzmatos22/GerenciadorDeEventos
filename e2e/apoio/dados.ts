@@ -135,6 +135,21 @@ export async function inscrever(
   return (await resposta.json()) as { id: number; status: string; posicaoFila?: number }
 }
 
+export async function registrarPresenca(
+  api: APIRequestContext,
+  organizador: UsuarioDeTeste,
+  eventoId: number,
+  inscricaoId: number,
+): Promise<void> {
+  const resposta = await api.post(`/api/eventos/${eventoId}/presencas`, {
+    headers: { Authorization: `Bearer ${organizador.token}` },
+    data: { inscricaoId },
+  })
+  if (!resposta.ok()) {
+    throw new Error(`Falha ao registrar presença: ${resposta.status()} ${await resposta.text()}`)
+  }
+}
+
 /**
  * Entra pela interface. O login é parte do que se testa, então não há atalho por token aqui:
  * a sessão nasce do mesmo caminho que a do usuário real.

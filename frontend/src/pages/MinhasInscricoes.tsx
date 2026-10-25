@@ -96,6 +96,9 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
 
   const ativa = inscricao.status === 'CONFIRMADA' || inscricao.status === 'EM_ESPERA'
   const eventoTerminou = new Date(evento.dataFim) < new Date()
+  // RN-05: o certificado depende só da presença. RN-06: a avaliação espera também o fim.
+  const presente = inscricao.status === 'CONFIRMADA' && inscricao.presencaRegistrada
+  const podeAvaliar = presente && eventoTerminou
 
   async function cancelar() {
     setErro(null)
@@ -170,23 +173,29 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
             Cancelar inscrição
           </Botao>
         )}
-        {eventoTerminou && inscricao.status === 'CONFIRMADA' && (
-          <>
-            <Botao
-              variante="secundario"
-              onClick={() => {
-                void baixarCertificado()
-              }}
-              disabled={ocupado}
-            >
-              Baixar certificado
-            </Botao>
-            <Botao variante="discreto" onClick={() => setAvaliando((aberto) => !aberto)}>
-              {avaliando ? 'Fechar avaliação' : 'Avaliar evento'}
-            </Botao>
-          </>
+        {presente && (
+          <Botao
+            variante="secundario"
+            onClick={() => {
+              void baixarCertificado()
+            }}
+            disabled={ocupado}
+          >
+            Baixar certificado
+          </Botao>
+        )}
+        {podeAvaliar && (
+          <Botao variante="discreto" onClick={() => setAvaliando((aberto) => !aberto)}>
+            {avaliando ? 'Fechar avaliação' : 'Avaliar evento'}
+          </Botao>
         )}
       </div>
+
+      {inscricao.status === 'CONFIRMADA' && !inscricao.presencaRegistrada && (
+        <p className="mt-3 text-sm text-slate-500">
+          O certificado é liberado assim que o organizador registrar sua presença.
+        </p>
+      )}
 
       <div className="mt-3">
         <Alerta>{erro}</Alerta>
@@ -260,8 +269,8 @@ export default function MinhasInscricoes() {
       <header>
         <h1 className="text-2xl font-semibold text-slate-900">Minhas inscrições</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Certificado e avaliação ficam disponíveis depois que o evento termina e sua presença é
-          registrada.
+          O certificado fica disponível assim que sua presença é registrada; a avaliação, depois
+          que o evento termina.
         </p>
       </header>
 

@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 public class InscricaoService {
 
@@ -48,10 +50,18 @@ public class InscricaoService {
         }, "cancelar a inscricao %d".formatted(inscricaoId));
     }
 
+    /** Cada inscricao diz se ja tem presenca, para a tela liberar o certificado (RN-05). */
     @Transactional(readOnly = true)
     public Page<InscricaoResponse> minhas(Long usuarioId, Pageable paginacao) {
-        return inscricaoRepository.findByUsuarioIdOrderByDataInscricaoDesc(usuarioId, paginacao)
-                .map(InscricaoResponse::de);
+        Page<Inscricao> pagina =
+                inscricaoRepository.findByUsuarioIdOrderByDataInscricaoDesc(usuarioId, paginacao);
+        if (pagina.isEmpty()) {
+            return pagina.map(InscricaoResponse::de);
+        }
+        Set<Long> comPresenca = inscricaoRepository.comPresencaRegistrada(
+                pagina.map(Inscricao::getId).getContent());
+        return pagina.map(inscricao ->
+                InscricaoResponse.de(inscricao, comPresenca.contains(inscricao.getId())));
     }
 
     /** RN-08: a lista de inscritos e da propriedade do organizador dono do evento. */

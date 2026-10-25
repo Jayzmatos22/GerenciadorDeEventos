@@ -1,9 +1,20 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import type { Papel } from '../types/api'
 import type { EstadoDeRota } from '../types/rota'
 import { ApiError } from '../api/client'
 import { useAuth } from '../context/auth'
 import { Alerta, Botao, Campo, Cartao, Entrada } from '../components/ui'
+
+/**
+ * Quem entrou com outra conta não deve voltar para a área que a conta anterior tentava abrir:
+ * cairia direto no aviso de "esta área não é do seu perfil".
+ */
+function podeAbrir(rota: string, papeis: Papel[]): boolean {
+  if (rota.startsWith('/organizador')) return papeis.includes('ORGANIZADOR')
+  if (rota.startsWith('/minhas-inscricoes')) return papeis.includes('PARTICIPANTE')
+  return true
+}
 
 export default function Entrar() {
   const { entrar } = useAuth()
@@ -20,9 +31,9 @@ export default function Entrar() {
     setErro(null)
     setEnviando(true)
     try {
-      await entrar(email, senha)
+      const usuario = await entrar(email, senha)
       const origem = (localizacao.state as EstadoDeRota | null)?.de
-      void navegar(origem ?? '/', { replace: true })
+      void navegar(origem && podeAbrir(origem, usuario.papeis) ? origem : '/', { replace: true })
     } catch (falha) {
       setErro(falha instanceof ApiError ? falha.message : 'Não foi possível entrar agora.')
     } finally {

@@ -34,29 +34,56 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Cada aba guarda a própria sessão no `sessionStorage`.
+ *
+ * O `localStorage` é um só para todas as abas do navegador: entrar como participante numa aba
+ * trocava, por baixo, o token da aba aberta como organizador, que seguia com o menu de
+ * organizador e passava a receber 403 em tudo. O `localStorage` fica só com o último login,
+ * para que uma aba nova, ou o site reaberto, já comece autenticada.
+ */
+function herdarUltimoLogin(): void {
+  if (sessionStorage.getItem(CHAVE_TOKEN) !== null) return
+  const token = localStorage.getItem(CHAVE_TOKEN)
+  const usuario = localStorage.getItem(CHAVE_USUARIO)
+  if (token && usuario) {
+    sessionStorage.setItem(CHAVE_TOKEN, token)
+    sessionStorage.setItem(CHAVE_USUARIO, usuario)
+  }
+}
+
+herdarUltimoLogin()
+
 export const sessao = {
-  token: (): string | null => localStorage.getItem(CHAVE_TOKEN),
+  token: (): string | null => sessionStorage.getItem(CHAVE_TOKEN),
 
   usuario: (): UsuarioResponse | null => {
-    const bruto = localStorage.getItem(CHAVE_USUARIO)
+    const bruto = sessionStorage.getItem(CHAVE_USUARIO)
     if (!bruto) return null
     try {
       return JSON.parse(bruto) as UsuarioResponse
     } catch {
       // Sessão corrompida no navegador não deve derrubar a aplicação inteira.
-      localStorage.removeItem(CHAVE_USUARIO)
+      sessionStorage.removeItem(CHAVE_USUARIO)
       return null
     }
   },
 
   salvar: (token: string, usuario: UsuarioResponse): void => {
-    localStorage.setItem(CHAVE_TOKEN, token)
-    localStorage.setItem(CHAVE_USUARIO, JSON.stringify(usuario))
+    for (const armazenamento of [sessionStorage, localStorage]) {
+      armazenamento.setItem(CHAVE_TOKEN, token)
+      armazenamento.setItem(CHAVE_USUARIO, JSON.stringify(usuario))
+    }
   },
 
   limpar: (): void => {
-    localStorage.removeItem(CHAVE_TOKEN)
-    localStorage.removeItem(CHAVE_USUARIO)
+    // O último login só é esquecido se for o desta aba; o de outra aba continua valendo.
+    if (localStorage.getItem(CHAVE_TOKEN) === sessionStorage.getItem(CHAVE_TOKEN)) {
+      localStorage.removeItem(CHAVE_TOKEN)
+      localStorage.removeItem(CHAVE_USUARIO)
+    }
+    sessionStorage.removeItem(CHAVE_TOKEN)
+    sessionStorage.removeItem(CHAVE_USUARIO)
   },
 }
 

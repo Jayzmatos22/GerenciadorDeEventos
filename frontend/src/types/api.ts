@@ -181,6 +181,8 @@ export interface InscricaoResponse {
   /** Presente apenas em `EM_ESPERA`. */
   posicaoFila?: number
   dataInscricao: DataHoraIso
+  /** Libera o certificado (RN-05); a avaliação ainda espera o fim do evento (RN-06). */
+  presencaRegistrada: boolean
   evento: {
     id: number
     titulo: string

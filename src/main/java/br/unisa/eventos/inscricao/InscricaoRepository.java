@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface InscricaoRepository extends JpaRepository<Inscricao, Long> {
 
@@ -38,6 +40,10 @@ public interface InscricaoRepository extends JpaRepository<Inscricao, Long> {
                                                                       StatusInscricao status);
 
     Page<Inscricao> findByUsuarioIdOrderByDataInscricaoDesc(Long usuarioId, Pageable paginacao);
+
+    /** RN-05: quais destas inscricoes ja tem presenca. Uma consulta para a pagina inteira. */
+    @Query("select p.inscricao.id from Presenca p where p.inscricao.id in :inscricaoIds")
+    Set<Long> comPresencaRegistrada(@Param("inscricaoIds") Collection<Long> inscricaoIds);
 
     Page<Inscricao> findByEventoIdOrderByStatusAscPosicaoFilaAscIdAsc(Long eventoId,
                                                                       Pageable paginacao);

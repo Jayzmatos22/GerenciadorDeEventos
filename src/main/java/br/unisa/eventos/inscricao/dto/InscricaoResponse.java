@@ -6,12 +6,19 @@ import br.unisa.eventos.inscricao.StatusInscricao;
 
 import java.time.LocalDateTime;
 
-/** Visao do participante: a inscricao e o evento ao qual ela pertence. */
+/**
+ * Visao do participante: a inscricao e o evento ao qual ela pertence.
+ *
+ * <p>{@code presencaRegistrada} existe para a interface saber quando oferecer o certificado:
+ * pela RN-05 ele depende so da presenca, e sem esse campo a tela precisava adivinhar pelo
+ * horario do evento.
+ */
 public record InscricaoResponse(
         Long id,
         StatusInscricao status,
         Integer posicaoFila,
         LocalDateTime dataInscricao,
+        boolean presencaRegistrada,
         EventoDaInscricao evento
 ) {
 
@@ -26,11 +33,16 @@ public record InscricaoResponse(
     ) {
     }
 
+    /** Inscricao recem-criada: ainda nao pode ter presenca. */
     public static InscricaoResponse de(Inscricao inscricao) {
+        return de(inscricao, false);
+    }
+
+    public static InscricaoResponse de(Inscricao inscricao, boolean presencaRegistrada) {
         var evento = inscricao.getEvento();
         return new InscricaoResponse(
                 inscricao.getId(), inscricao.getStatus(), inscricao.getPosicaoFila(),
-                inscricao.getDataInscricao(),
+                inscricao.getDataInscricao(), presencaRegistrada,
                 new EventoDaInscricao(evento.getId(), evento.getTitulo(), evento.getLocal(),
                         evento.getDataInicio(), evento.getDataFim(), evento.getCargaHoraria(),
                         evento.getStatus()));

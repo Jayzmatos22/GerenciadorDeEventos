@@ -48,6 +48,19 @@ const PROXIMOS_STATUS: Record<StatusEvento, Transicao[]> = {
   CANCELADO: [],
 }
 
+/**
+ * O catálogo público lista só eventos PUBLICADOS (RF-04). Sem este aviso, um rascunho ou um
+ * evento marcado como em andamento some para os outros sem que o organizador perceba.
+ */
+const VISIBILIDADE: Partial<Record<StatusEvento, string>> = {
+  RASCUNHO:
+    'Ainda não aparece no catálogo: outras pessoas só veem o evento depois que você publicá-lo.',
+  PUBLICADO: 'Visível no catálogo para qualquer pessoa e aberto a inscrições.',
+  EM_ANDAMENTO:
+    'Saiu do catálogo e não aceita novas inscrições. Quem já está inscrito continua vendo o ' +
+    'evento em "Minhas inscrições".',
+}
+
 interface PainelInscritosProps {
   eventoId: string
   onMensagem: (mensagem: string) => void
@@ -495,6 +508,9 @@ export default function GerenciarEvento() {
               {rotulo}
             </Botao>
           ))}
+          {VISIBILIDADE[evento.status] && (
+            <p className="basis-full text-sm text-slate-600">{VISIBILIDADE[evento.status]}</p>
+          )}
           {transicoes.length === 0 && (
             <p className="text-sm text-slate-600">
               Este evento está em um estado final e não aceita mais mudanças.
