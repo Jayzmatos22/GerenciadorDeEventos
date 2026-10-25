@@ -8,7 +8,7 @@ de mudar comportamento** — ela é a fonte de verdade das regras de negócio.
 
 ```bash
 # Backend (precisa do Postgres: docker compose up -d)
-./mvnw verify                                        # 133 testes, Testcontainers exige Docker
+./mvnw verify                                        # 136 testes, Testcontainers exige Docker
 ./mvnw spring-boot:run                               # perfil dev por padrao; .env troca
 
 # Frontend

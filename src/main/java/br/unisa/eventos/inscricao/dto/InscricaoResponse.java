@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
  * Visao do participante: a inscricao e o evento ao qual ela pertence.
  *
  * <p>{@code presencaRegistrada} existe para a interface saber quando oferecer o certificado:
- * pela RN-05 ele depende so da presenca, e sem esse campo a tela precisava adivinhar pelo
- * horario do evento.
+ * pela RN-05 ele exige a presenca e o fim do evento, e o fim a tela ja tem em {@code evento};
+ * a presenca, sem este campo, ela nao tinha como saber.
  */
 public record InscricaoResponse(
         Long id,

@@ -135,6 +135,21 @@ export async function inscrever(
   return (await resposta.json()) as { id: number; status: string; posicaoFila?: number }
 }
 
+export async function mudarStatus(
+  api: APIRequestContext,
+  organizador: UsuarioDeTeste,
+  eventoId: number,
+  status: string,
+): Promise<void> {
+  const resposta = await api.patch(`/api/eventos/${eventoId}/status`, {
+    headers: { Authorization: `Bearer ${organizador.token}` },
+    data: { status },
+  })
+  if (!resposta.ok()) {
+    throw new Error(`Falha ao mudar para ${status}: ${resposta.status()} ${await resposta.text()}`)
+  }
+}
+
 export async function registrarPresenca(
   api: APIRequestContext,
   organizador: UsuarioDeTeste,

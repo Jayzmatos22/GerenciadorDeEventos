@@ -50,7 +50,7 @@ public class InscricaoService {
         }, "cancelar a inscricao %d".formatted(inscricaoId));
     }
 
-    /** Cada inscricao diz se ja tem presenca, para a tela liberar o certificado (RN-05). */
+    /** Cada inscricao diz se ja tem presenca, condicao do certificado (RN-05). */
     @Transactional(readOnly = true)
     public Page<InscricaoResponse> minhas(Long usuarioId, Pageable paginacao) {
         Page<Inscricao> pagina =

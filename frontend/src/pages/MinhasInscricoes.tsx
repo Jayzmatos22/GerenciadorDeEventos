@@ -96,8 +96,14 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
 
   const ativa = inscricao.status === 'CONFIRMADA' || inscricao.status === 'EM_ESPERA'
   const eventoTerminou = new Date(evento.dataFim) < new Date()
-  // RN-05: o certificado depende só da presença. RN-06: a avaliação espera também o fim.
   const presente = inscricao.status === 'CONFIRMADA' && inscricao.presencaRegistrada
+  // RN-05: certificado para quem tem presença, quando passa o horário de fim ou o organizador
+  // encerra antes. Evento cancelado não emite.
+  const certificadoLiberado =
+    presente &&
+    evento.status !== 'CANCELADO' &&
+    (evento.status === 'ENCERRADO' || eventoTerminou)
+  // RN-06: a avaliação espera o horário de fim, mesmo com o evento encerrado antes.
   const podeAvaliar = presente && eventoTerminou
 
   async function cancelar() {
@@ -173,7 +179,7 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
             Cancelar inscrição
           </Botao>
         )}
-        {presente && (
+        {certificadoLiberado && (
           <Botao
             variante="secundario"
             onClick={() => {
@@ -191,9 +197,11 @@ function CartaoInscricao({ inscricao, onMudou, onMensagem }: CartaoInscricaoProp
         )}
       </div>
 
-      {inscricao.status === 'CONFIRMADA' && !inscricao.presencaRegistrada && (
+      {inscricao.status === 'CONFIRMADA' && !certificadoLiberado && evento.status !== 'CANCELADO' && (
         <p className="mt-3 text-sm text-slate-500">
-          O certificado é liberado assim que o organizador registrar sua presença.
+          {inscricao.presencaRegistrada
+            ? 'Presença registrada. O certificado é liberado quando o evento terminar.'
+            : 'O certificado é liberado no fim do evento para quem teve a presença registrada.'}
         </p>
       )}
 
@@ -269,8 +277,8 @@ export default function MinhasInscricoes() {
       <header>
         <h1 className="text-2xl font-semibold text-slate-900">Minhas inscrições</h1>
         <p className="mt-1 text-sm text-slate-600">
-          O certificado fica disponível assim que sua presença é registrada; a avaliação, depois
-          que o evento termina.
+          Com a presença registrada, o certificado é liberado quando o evento termina ou é
+          encerrado pelo organizador; a avaliação, depois do horário de fim.
         </p>
       </header>
 

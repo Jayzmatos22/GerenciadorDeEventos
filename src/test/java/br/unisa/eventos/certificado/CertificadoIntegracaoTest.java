@@ -32,6 +32,53 @@ class CertificadoIntegracaoTest extends AbstractIntegracaoTest {
     }
 
     @Test
+    @DisplayName("certificado e negado enquanto o evento acontece, mesmo com presenca - RN05")
+    void deveNegarCertificadoAntesDoFimDoEvento_RN05() throws Exception {
+        Autenticado organizador = autenticar("org-antes-do-fim@unisa.br", Papel.ORGANIZADOR);
+        Autenticado participante = autenticar("antes-do-fim@unisa.br", Papel.PARTICIPANTE);
+        long eventoId = criarEventoEmAndamento(organizador, "Ainda acontecendo", 10);
+        long inscricaoId = inscreverConfirmado(participante, eventoId);
+        registrarPresenca(organizador, eventoId, inscricaoId);
+
+        mockMvc.perform(post("/api/inscricoes/{id}/certificado", inscricaoId)
+                        .header(HttpHeaders.AUTHORIZATION, participante.header()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.codigo").value("EVENTO_NAO_TERMINADO"));
+    }
+
+    @Test
+    @DisplayName("organizador encerra antes do horario e quem tem presenca recebe certificado - RN05")
+    void deveLiberarCertificadoQuandoOrganizadorEncerraOEvento_RN05() throws Exception {
+        Autenticado organizador = autenticar("org-encerra@unisa.br", Papel.ORGANIZADOR);
+        Autenticado participante = autenticar("encerrado-cedo@unisa.br", Papel.PARTICIPANTE);
+        long eventoId = criarEventoEmAndamento(organizador, "Encerrado mais cedo", 10);
+        long inscricaoId = inscreverConfirmado(participante, eventoId);
+        registrarPresenca(organizador, eventoId, inscricaoId);
+        mudarStatus(organizador, eventoId, "ENCERRADO");
+
+        mockMvc.perform(post("/api/inscricoes/{id}/certificado", inscricaoId)
+                        .header(HttpHeaders.AUTHORIZATION, participante.header()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.inscricaoId").value(inscricaoId));
+    }
+
+    @Test
+    @DisplayName("evento cancelado nao libera certificado, mesmo com presenca - RN05")
+    void deveNegarCertificadoDeEventoCancelado_RN05() throws Exception {
+        Autenticado organizador = autenticar("org-cancela@unisa.br", Papel.ORGANIZADOR);
+        Autenticado participante = autenticar("cancelado@unisa.br", Papel.PARTICIPANTE);
+        long eventoId = criarEventoEmAndamento(organizador, "Cancelado no meio", 10);
+        long inscricaoId = inscreverConfirmado(participante, eventoId);
+        registrarPresenca(organizador, eventoId, inscricaoId);
+        mudarStatus(organizador, eventoId, "CANCELADO");
+
+        mockMvc.perform(post("/api/inscricoes/{id}/certificado", inscricaoId)
+                        .header(HttpHeaders.AUTHORIZATION, participante.header()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.codigo").value("EVENTO_NAO_TERMINADO"));
+    }
+
+    @Test
     @DisplayName("emite o certificado com presenca e codigo em UUID sem hifens - RN05")
     void deveEmitirCertificadoComPresenca_RN05() throws Exception {
         Autenticado organizador = autenticar("org-cert@unisa.br", Papel.ORGANIZADOR);

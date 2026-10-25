@@ -11,10 +11,13 @@ import br.unisa.eventos.presenca.PresencaRepository;
 import br.unisa.eventos.shared.exception.AcessoNegadoException;
 import br.unisa.eventos.shared.exception.PresencaNaoRegistradaException;
 import br.unisa.eventos.shared.exception.RecursoNaoEncontradoException;
+import br.unisa.eventos.shared.exception.RegraDeNegocioException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 public class CertificadoService {
@@ -40,7 +43,8 @@ public class CertificadoService {
     }
 
     /**
-     * RN-05: so emite com presenca registrada, e a emissao e idempotente - chamar duas vezes
+     * RN-05: so emite com presenca registrada e depois que o evento termina ou e encerrado
+     * pelo organizador, e a emissao e idempotente - chamar duas vezes
      * devolve o mesmo certificado, com o mesmo codigo. E por isso que nao existe um GET de
      * consulta: o POST ja serve para recuperar o certificado existente.
      */
@@ -81,11 +85,33 @@ public class CertificadoService {
             throw new PresencaNaoRegistradaException(
                     "O certificado so pode ser emitido apos o registro de presenca no evento.");
         }
+        // RN-05: o certificado e de quem ficou ate o fim. A presenca e um check-in so, entao
+        // "ate o fim" se traduz em o evento ter terminado: pelo horario ou pelo organizador.
+        if (!liberaCertificado(inscricao.getEvento())) {
+            throw new RegraDeNegocioException(
+                    "O certificado e liberado quando o evento termina ou e encerrado pelo "
+                            + "organizador.", "EVENTO_NAO_TERMINADO");
+        }
 
         Certificado certificado = certificadoRepository.save(new Certificado(inscricao));
         log.info("Certificado {} emitido para a inscricao {}", certificado.getId(),
                 inscricao.getId());
         return CertificadoResponse.de(certificado, urlDeValidacao(certificado));
+    }
+
+    /**
+     * RN-05: libera quando o organizador encerra o evento ou quando passa o horario de fim, o
+     * que vier primeiro.
+     *
+     * <p>DECISAO: evento CANCELADO nao libera certificado, nem depois do horario de fim. A regra
+     * fala em evento encerrado, e cancelamento nao e a conclusao da atividade.
+     */
+    private boolean liberaCertificado(Evento evento) {
+        return switch (evento.getStatus()) {
+            case ENCERRADO -> true;
+            case CANCELADO -> false;
+            default -> !evento.getDataFim().isAfter(LocalDateTime.now());
+        };
     }
 
     private DadosCertificado dadosDe(Certificado certificado) {

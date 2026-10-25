@@ -59,6 +59,7 @@ const VISIBILIDADE: Partial<Record<StatusEvento, string>> = {
   EM_ANDAMENTO:
     'Saiu do catálogo e não aceita novas inscrições. Quem já está inscrito continua vendo o ' +
     'evento em "Minhas inscrições".',
+  ENCERRADO: 'Quem teve a presença registrada já pode gerar o certificado.',
 }
 
 interface PainelInscritosProps {

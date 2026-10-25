@@ -5,14 +5,15 @@ import {
   entrarNaInterface,
   inscrever,
   marcadorUnico,
+  mudarStatus,
   registrarPresenca,
 } from '../apoio/dados'
 
 /**
- * RN-05: o certificado depende só da presença. A tela esperava também o fim do evento, e o
- * participante que fazia check-in no meio da atividade não via o botão.
+ * RN-05: certificado para quem tem presença, quando o evento termina. Se o organizador encerra
+ * antes do horário, quem tem presença já recebe.
  */
-test('certificado aparece logo depois do check-in, com o evento ainda acontecendo - RN05', async ({
+test('organizador encerra o evento antes do horário e libera o certificado - RN05', async ({
   page,
   request,
 }) => {
@@ -28,17 +29,24 @@ test('certificado aparece logo depois do check-in, com o evento ainda acontecend
   await entrarNaInterface(page, participante)
   await page.getByRole('link', { name: /Minhas inscrições/ }).click()
   await expect(
-    page.getByText('O certificado é liberado assim que o organizador registrar sua presença.'),
+    page.getByText('O certificado é liberado no fim do evento para quem teve a presença registrada.'),
+  ).toBeVisible()
+
+  // Presença sozinha não basta enquanto o evento acontece.
+  await registrarPresenca(request, organizador, eventoId, inscricao.id)
+  await page.reload()
+  await expect(
+    page.getByText('Presença registrada. O certificado é liberado quando o evento terminar.'),
   ).toBeVisible()
   await expect(page.getByRole('button', { name: 'Baixar certificado' })).toHaveCount(0)
 
-  await registrarPresenca(request, organizador, eventoId, inscricao.id)
+  await mudarStatus(request, organizador, eventoId, 'ENCERRADO')
   await page.reload()
 
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Baixar certificado' }).click()
   expect((await download).suggestedFilename()).toMatch(/^certificado-\d+\.pdf$/)
-  // RN-06: avaliar continua esperando o fim do evento.
+  // RN-06: avaliar continua esperando o horário de fim, mesmo com o evento encerrado antes.
   await expect(page.getByRole('button', { name: 'Avaliar evento' })).toHaveCount(0)
 })
 

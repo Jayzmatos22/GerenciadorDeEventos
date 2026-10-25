@@ -248,11 +248,12 @@ class InscricaoIntegracaoTest extends AbstractIntegracaoTest {
     }
 
     @Test
-    @DisplayName("/inscricoes/minhas indica a presenca registrada, que libera o certificado - RN05")
+    @DisplayName("/inscricoes/minhas indica a presenca registrada, condicao do certificado - RN05")
     void deveIndicarPresencaRegistradaNasMinhasInscricoes_RN05() throws Exception {
         Autenticado organizador = autenticar("org-presenca-minhas@unisa.br", Papel.ORGANIZADOR);
         Autenticado participante = autenticar("presenca-minhas@unisa.br", Papel.PARTICIPANTE);
-        // Eventos ainda acontecendo: o certificado nao depende do fim do evento, so da presenca.
+        // Eventos ainda acontecendo: a presenca ja aparece antes do fim, que e o que a tela usa
+        // para avisar o participante de que o certificado sai quando o evento terminar.
         long eventoComCheckIn = criarEventoEmAndamento(organizador, "Com check-in", 5);
         long eventoSemCheckIn = criarEventoEmAndamento(organizador, "Sem check-in", 5);
         long presente = inscreverConfirmado(participante, eventoComCheckIn);

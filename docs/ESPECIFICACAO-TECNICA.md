@@ -257,7 +257,7 @@ Notas de mapeamento JPA:
 | RN-02 | Ao cancelar uma inscrição `CONFIRMADA`, promover automaticamente a primeira `EM_ESPERA` (menor `posicaoFila`) para `CONFIRMADA`, na mesma transação. Cancelar uma `EM_ESPERA` não promove ninguém, mas reordena a fila. | RF-06, RF-07 |
 | RN-03 | Um usuário não pode ter duas inscrições ativas no mesmo evento. Reinscrição após cancelamento é permitida e entra no fim da fila. | RF-05 |
 | RN-04 | Check-in só é aceito entre `dataInicio` e `dataFim + 24h`, apenas pelo organizador dono do evento, e apenas para inscrições `CONFIRMADA`. | RF-08 |
-| RN-05 | Certificado só é emitido se existir `presenca` para a inscrição. Código de autenticidade = UUID sem hífens, em maiúsculas. Emissão é idempotente: chamar duas vezes devolve o mesmo certificado. | RF-09 |
+| RN-05 | Certificado só é emitido se existir `presenca` para a inscrição e o evento tiver terminado: `dataFim` já passou ou o organizador o encerrou antes (`ENCERRADO`), o que vier primeiro. Evento `CANCELADO` não emite. Código de autenticidade = UUID sem hífens, em maiúsculas. Emissão é idempotente: chamar duas vezes devolve o mesmo certificado. | RF-09 |
 | RN-06 | Avaliação só é aceita se houver presença registrada e `dataFim` já tiver passado. Uma avaliação por inscrição. | RF-10 |
 | RN-07 | O resumo por IA só é gerado com no mínimo 3 avaliações (`app.avaliacao.minimo-para-resumo`). Regerar substitui o resumo anterior. | RF-10 |
 | RN-08 | Apenas o organizador criador pode editar, publicar, cancelar, registrar presença e ver inscritos do seu evento. | RNF-04 |
