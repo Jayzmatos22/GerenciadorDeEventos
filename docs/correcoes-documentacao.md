@@ -5,7 +5,7 @@ estão aplicadas em `Documentacao-Completa-com-Diagramas.docx`. Ficam a critéri
 
 ## Para preencher
 
-- **Folha de rosto:** os campos "Área de concentração" e "Orientador(a)" estão em branco.
+- **Folha de rosto:** o campo "Área de concentração" não consta da versão ABNT; o orientador já está preenchido.
 
 ## Divergências com o código, não corrigidas
 
